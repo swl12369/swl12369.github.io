@@ -13,10 +13,12 @@ import { useAuth } from './context/AuthContext';
 function App() {
   const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin'
   const [selectedPost, setSelectedPost] = useState(null);
+  const [createPostProps, setCreatePostProps] = useState({});
   const { isLoggedIn, user, logout } = useAuth();
 
   const handlePostCreated = () => {
     setView('home');
+    setCreatePostProps({});
   };
 
   const handlePostClick = (post) => {
@@ -38,6 +40,12 @@ function App() {
   };
 
   const handleCreateClick = () => {
+    setCreatePostProps({}); // Reset props
+    setView('create');
+  };
+
+  const handleCreatePollClick = () => {
+    setCreatePostProps({ isPollMode: true });
     setView('create');
   };
 
@@ -84,6 +92,9 @@ function App() {
           <a href="#" className="nav-link" onClick={() => { setView('home'); setSelectedPost(null); }}>
             홈
           </a>
+          <a href="#" className="nav-link" onClick={handleCreatePollClick} style={{ color: '#1A237E', fontWeight: 'bold' }}>
+            🗳️ 투표 만들기
+          </a>
           <a href="#" className="nav-link" onClick={handleCreateClick}>
             글쓰기
           </a>
@@ -108,9 +119,15 @@ function App() {
         {view === 'home' ? (
           <PostList key={Date.now()} onPostClick={handlePostClick} />
         ) : view === 'detail' ? (
-          <PostDetail post={selectedPost} onBack={handleBackToList} />
+          <PostDetail
+            post={selectedPost}
+            onBack={handleBackToList}
+            onPostUpdated={(updatedPost) => {
+              setSelectedPost(updatedPost); // Update current view
+            }}
+          />
         ) : view === 'create' ? (
-          <CreatePost onPostCreated={handlePostCreated} />
+          <CreatePost onPostCreated={handlePostCreated} {...createPostProps} />
         ) : view === 'admin' && user.username === 'xManager' ? (
           <AdminDashboard />
         ) : view === 'delete-account' ? (

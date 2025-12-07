@@ -51,8 +51,8 @@ app.post('/api/register', (req, res) => {
 
     const users = JSON.parse(fs.readFileSync(usersPath));
 
-    // Check if user already exists
-    if (users.find(u => u.username === username)) {
+    // Check if user already exists (case-insensitive)
+    if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
         return res.status(400).json({ error: '이미 존재하는 아이디입니다.' });
     }
 
@@ -272,8 +272,10 @@ app.post('/api/posts', upload.single('image'), (req, res) => {
         title,
         content,
         imagePath,
+        imagePath,
         author: author || '익명',
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        comments: [] // Initialize empty comments array
     };
 
     const posts = JSON.parse(fs.readFileSync(dbPath));
@@ -281,6 +283,155 @@ app.post('/api/posts', upload.single('image'), (req, res) => {
     fs.writeFileSync(dbPath, JSON.stringify(posts, null, 2));
 
     res.status(201).json(newPost);
+});
+
+app.put('/api/posts/:id', upload.single('image'), (req, res) => {
+    const { id } = req.params;
+    const { title, content, username } = req.body;
+
+    const posts = JSON.parse(fs.readFileSync(dbPath));
+    const postIndex = posts.findIndex(p => p.id === parseInt(id));
+
+    if (postIndex === -1) {
+        return res.status(404).json({ error: '게시물을 찾을 수 없습니다.' });
+    }
+
+    const post = posts[postIndex];
+
+    // Check ownership
+    if (post.author !== username) {
+        return res.status(403).json({ error: '본인의 게시물만 수정할 수 있습니다.' });
+    }
+
+    // Update fields
+    posts[postIndex].title = title;
+    posts[postIndex].content = content;
+
+    // Handle Image Update
+    if (req.file) {
+        // Delete old image if exists
+        if (post.imagePath) {
+            const oldPath = path.join(__dirname, post.imagePath);
+            if (fs.existsSync(oldPath)) {
+                try {
+                    fs.unlinkSync(oldPath);
+                } catch (e) {
+                    console.error("Error deleting old image:", e);
+                }
+            }
+        }
+        posts[postIndex].imagePath = `/uploads/${req.file.filename}`;
+    }
+
+    fs.writeFileSync(dbPath, JSON.stringify(posts, null, 2));
+    res.json(posts[postIndex]);
+});
+
+app.post('/api/posts/:id/comments', (req, res) => {
+    const { id } = req.params;
+    const { username, content } = req.body;
+
+    if (!content) {
+        return res.status(400).json({ error: '댓글 내용을 입력해주세요.' });
+    }
+
+    const posts = JSON.parse(fs.readFileSync(dbPath));
+    const postIndex = posts.findIndex(p => p.id === parseInt(id));
+
+    if (postIndex === -1) {
+        return res.status(404).json({ error: '게시물을 찾을 수 없습니다.' });
+    }
+
+    const newComment = {
+        id: Date.now(),
+        author: username || '익명',
+        content,
+        date: new Date().toISOString()
+    };
+
+    if (!posts[postIndex].comments) {
+        posts[postIndex].comments = [];
+    }
+
+    posts[postIndex].comments.push(newComment);
+    fs.writeFileSync(dbPath, JSON.stringify(posts, null, 2));
+
+    fs.writeFileSync(dbPath, JSON.stringify(posts, null, 2));
+
+    res.status(201).json(posts[postIndex]);
+});
+
+app.delete('/api/posts/:id/comments/:commentId', (req, res) => {
+    const { id, commentId } = req.params;
+    const { username } = req.body;
+
+    const posts = JSON.parse(fs.readFileSync(dbPath));
+    const postIndex = posts.findIndex(p => p.id === parseInt(id));
+
+    if (postIndex === -1) {
+        return res.status(404).json({ error: '게시물을 찾을 수 없습니다.' });
+    }
+
+    const post = posts[postIndex];
+    if (!post.comments) {
+        return res.status(404).json({ error: '댓글을 찾을 수 없습니다.' });
+    }
+
+    const commentIndex = post.comments.findIndex(c => c.id === parseInt(commentId));
+    if (commentIndex === -1) {
+        return res.status(404).json({ error: '댓글을 찾을 수 없습니다.' });
+    }
+
+    // Check ownership or admin role
+    const users = JSON.parse(fs.readFileSync(usersPath));
+    const user = users.find(u => u.username === username);
+    const isAdmin = user && (user.role === 'admin' || user.username === 'xManager');
+
+    if (post.comments[commentIndex].author !== username && !isAdmin) {
+        return res.status(403).json({ error: '본인의 댓글만 삭제할 수 있습니다.' });
+    }
+
+    post.comments.splice(commentIndex, 1);
+    fs.writeFileSync(dbPath, JSON.stringify(posts, null, 2));
+
+    res.json(posts[postIndex]);
+});
+
+app.post('/api/posts/:id/vote', (req, res) => {
+    const { id } = req.params;
+    const { username, optionIndex } = req.body;
+
+    const posts = JSON.parse(fs.readFileSync(dbPath));
+    const postIndex = posts.findIndex(p => p.id === parseInt(id));
+
+    if (postIndex === -1) {
+        return res.status(404).json({ error: '게시물을 찾을 수 없습니다.' });
+    }
+
+    const post = posts[postIndex];
+
+    if (!post.poll) {
+        return res.status(400).json({ error: '투표가 없는 게시물입니다.' });
+    }
+
+    // Voting Logic: Toggle/Switch
+    let removed = false;
+    post.poll.options.forEach((opt, idx) => {
+        const userIndex = opt.votes.indexOf(username);
+        if (userIndex !== -1) {
+            opt.votes.splice(userIndex, 1); // Allow re-vote (remove from previous)
+            if (idx === optionIndex) {
+                removed = true; // User clicked same option -> Cancel vote
+            }
+        }
+    });
+
+    if (!removed) {
+        post.poll.options[optionIndex].votes.push(username);
+    }
+
+    fs.writeFileSync(dbPath, JSON.stringify(posts, null, 2));
+    res.json(posts[postIndex]);
 });
 
 app.delete('/api/posts/:id', (req, res) => {
