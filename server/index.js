@@ -30,6 +30,31 @@ if (!fs.existsSync(usersPath)) {
     fs.writeFileSync(usersPath, JSON.stringify([]));
 }
 
+// Initialize Admin from Env Vars
+const adminUsername = process.env.ADMIN_USERNAME;
+const adminPassword = process.env.ADMIN_PASSWORD;
+
+if (adminUsername && adminPassword) {
+    const users = JSON.parse(fs.readFileSync(usersPath));
+    const adminExists = users.find(u => u.username.toLowerCase() === adminUsername.toLowerCase());
+
+    if (!adminExists) {
+        console.log('Creating admin user from environment variables...');
+        const newAdmin = {
+            id: Date.now(),
+            username: adminUsername,
+            password: adminPassword,
+            securityQuestion: 'System Generated',
+            securityAnswer: 'system',
+            role: 'admin',
+            isApproved: true
+        };
+        users.push(newAdmin);
+        fs.writeFileSync(usersPath, JSON.stringify(users, null, 2));
+        console.log(`Admin user '${adminUsername}' created.`);
+    }
+}
+
 // Multer Setup
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
