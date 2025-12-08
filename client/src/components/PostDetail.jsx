@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import EditPost from './EditPost';
+import { API_URL } from '../config';
 
 const PostDetail = ({ post, onBack, onPostUpdated }) => {
     const { user } = useAuth();
@@ -26,7 +27,7 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
         }
 
         try {
-            const res = await fetch(`http://localhost:5000/api/posts/${post.id}`, {
+            const res = await fetch(`${API_URL}/api/posts/${post.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -93,7 +94,7 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
             <div className="post-detail">
                 {post.imagePath && (
                     <img
-                        src={`http://localhost:5000${post.imagePath}`}
+                        src={`${API_URL}${post.imagePath}`}
                         alt={post.title}
                         className="detail-image"
                     />
@@ -129,7 +130,7 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
                                         onClick={async () => {
                                             if (!user) return alert('로그인이 필요합니다.');
                                             try {
-                                                const res = await fetch(`http://localhost:5000/api/posts/${post.id}/vote`, {
+                                                const res = await fetch(`${API_URL}/api/posts/${post.id}/vote`, {
                                                     method: 'POST',
                                                     headers: { 'Content-Type': 'application/json' },
                                                     body: JSON.stringify({ username: user.username, optionIndex: index })
@@ -209,7 +210,7 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
                                             onClick={async () => {
                                                 if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
                                                 try {
-                                                    const res = await fetch(`http://localhost:5000/api/posts/${post.id}/comments/${comment.id}`, {
+                                                    const res = await fetch(`${API_URL}/api/posts/${post.id}/comments/${comment.id}`, {
                                                         method: 'DELETE',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({ username: user.username })
@@ -251,7 +252,7 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
                             if (!content.trim()) return;
 
                             try {
-                                const res = await fetch(`http://localhost:5000/api/posts/${post.id}/comments`, {
+                                const res = await fetch(`${API_URL}/api/posts/${post.id}/comments`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ username: user.username, content })

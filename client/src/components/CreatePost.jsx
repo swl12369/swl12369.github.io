@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../config';
 
 const CreatePost = ({ onPostCreated, initialTitle = '', isPollMode = false }) => {
     const [title, setTitle] = useState(initialTitle);
@@ -37,7 +38,7 @@ const CreatePost = ({ onPostCreated, initialTitle = '', isPollMode = false }) =>
         }
 
         try {
-            const res = await fetch('http://localhost:5000/api/posts', {
+            const res = await fetch(`${API_URL}/api/posts`, {
                 method: 'POST',
                 body: formData
             });

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../config';
 
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
@@ -6,7 +7,7 @@ const AdminDashboard = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/admin/users');
+            const res = await fetch(`${API_URL}/api/admin/users`);
             const data = await res.json();
             setUsers(data);
         } catch (err) {
@@ -20,7 +21,7 @@ const AdminDashboard = () => {
 
     const handleApprove = async (username) => {
         try {
-            const res = await fetch('http://localhost:5000/api/admin/approve', {
+            const res = await fetch(`${API_URL}/api/admin/approve`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

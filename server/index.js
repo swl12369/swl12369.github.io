@@ -202,14 +202,18 @@ app.post('/api/admin/login', (req, res) => {
     }
 
     const users = JSON.parse(fs.readFileSync(usersPath));
-    const admin = users.find(u => u.username === 'irene');
-    console.log('Found admin:', admin);
+    // Allow 'irene', 'xManager', or anyone with role 'admin'
+    const adminUser = users.find(u =>
+        u.username === username &&
+        (u.username === 'irene' || u.username === 'xManager' || u.role === 'admin')
+    );
+    console.log('Found admin user:', adminUser);
 
-    if (!admin) {
-        return res.status(401).json({ error: '관리자 계정이 설정되지 않았습니다.' });
+    if (!adminUser) {
+        return res.status(401).json({ error: '관리자 권한이 없는 계정입니다.' });
     }
 
-    if (username === admin.username && password === admin.password) {
+    if (password === adminUser.password) {
         console.log('Login success');
         res.json({
             username: admin.username,

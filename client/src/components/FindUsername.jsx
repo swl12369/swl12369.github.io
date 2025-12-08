@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL } from '../config';
 
 const FindUsername = ({ onBack }) => {
     const [securityQuestion, setSecurityQuestion] = useState('');
@@ -21,7 +22,7 @@ const FindUsername = ({ onBack }) => {
         setSuccess(false);
 
         try {
-            const res = await fetch('http://localhost:5000/api/find-username', {
+            const res = await fetch(`${API_URL}/api/find-username`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ securityQuestion, securityAnswer })

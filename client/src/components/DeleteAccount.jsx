@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../config';
 
 const DeleteAccount = ({ onBack, onSuccess }) => {
     const [password, setPassword] = useState('');
@@ -21,7 +22,7 @@ const DeleteAccount = ({ onBack, onSuccess }) => {
         }
 
         try {
-            const res = await fetch('http://localhost:5000/api/user', {
+            const res = await fetch(`${API_URL}/api/user`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: user.username, password })

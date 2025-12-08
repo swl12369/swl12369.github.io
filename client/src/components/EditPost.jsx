@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../config';
 
 const EditPost = ({ post, onCancel, onUpdateSuccess }) => {
     const [title, setTitle] = useState(post.title);
     const [content, setContent] = useState(post.content);
     const [image, setImage] = useState(null);
-    const [preview, setPreview] = useState(post.imagePath ? `http://localhost:5000${post.imagePath}` : null);
+    const [preview, setPreview] = useState(post.imagePath ? `${API_URL}${post.imagePath}` : null);
     const { user } = useAuth();
 
     const handleImageChange = (e) => {
@@ -27,7 +28,7 @@ const EditPost = ({ post, onCancel, onUpdateSuccess }) => {
         }
 
         try {
-            const res = await fetch(`http://localhost:5000/api/posts/${post.id}`, {
+            const res = await fetch(`${API_URL}/api/posts/${post.id}`, {
                 method: 'PUT',
                 body: formData
             });
