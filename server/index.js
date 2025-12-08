@@ -62,8 +62,8 @@ app.post('/api/register', (req, res) => {
         password, // In production, this should be hashed
         securityQuestion,
         securityAnswer: securityAnswer.toLowerCase().trim(),
-        role: username === 'xManager' ? 'admin' : 'user',
-        isApproved: username === 'xManager' ? true : false // Default to unapproved, auto-approve xManager
+        role: username.toLowerCase() === 'xmanager' ? 'admin' : 'user',
+        isApproved: username.toLowerCase() === 'xmanager' ? true : false // Auto-approve xManager (case-insensitive)
     };
 
     users.push(newUser);
@@ -72,7 +72,7 @@ app.post('/api/register', (req, res) => {
     res.status(201).json({
         id: newUser.id,
         username: newUser.username,
-        message: '회원가입이 완료되었습니다. 관리자 승인 대기 중입니다.'
+        message: newUser.isApproved ? '관리자(xManager)로 자동 승인되었습니다.' : '회원가입이 완료되었습니다. 관리자 승인 대기 중입니다.'
     });
 });
 
