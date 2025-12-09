@@ -57,7 +57,14 @@ const AdminDashboard = () => {
                     <ul className="user-list">
                         {pendingUsers.map(user => (
                             <li key={user.id} className="user-item">
-                                <span>{user.username}</span>
+                                <span>
+                                    <img
+                                        src={`https://api.dicebear.com/9.x/dylan/svg?seed=${user.avatarSeed || user.username}`}
+                                        alt="avatar"
+                                        style={{ width: '24px', height: '24px', borderRadius: '50%', verticalAlign: 'middle', marginRight: '8px' }}
+                                    />
+                                    {user.username}
+                                </span>
                                 <button
                                     onClick={() => handleApprove(user.username)}
                                     className="btn-approve"
@@ -75,7 +82,14 @@ const AdminDashboard = () => {
                 <ul className="user-list">
                     {approvedUsers.map(user => (
                         <li key={user.id} className="user-item">
-                            <span>{user.username}</span>
+                            <span>
+                                <img
+                                    src={`https://api.dicebear.com/9.x/dylan/svg?seed=${user.avatarSeed || user.username}`}
+                                    alt="avatar"
+                                    style={{ width: '24px', height: '24px', borderRadius: '50%', verticalAlign: 'middle', marginRight: '8px' }}
+                                />
+                                {user.username}
+                            </span>
                             <span className="status-badge">승인됨</span>
                         </li>
                     ))}

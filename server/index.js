@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema({
     securityQuestion: { type: String, required: true },
     securityAnswer: { type: String, required: true },
     role: { type: String, default: 'user' },
+    avatarSeed: { type: String }, // For customizable avatars
     isApproved: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
@@ -116,6 +117,11 @@ const upload = multer({ storage });
 
 // Auth Routes
 app.post('/api/register', async (req, res) => {
+    // Check Database Connection
+    if (mongoose.connection.readyState !== 1) {
+        return res.status(503).json({ error: '데이터베이스에 연결되지 않았습니다. 잠시 후 다시 시도해주세요.' });
+    }
+
     const { username, password, securityQuestion, securityAnswer } = req.body;
 
     if (!username || !password || !securityQuestion || !securityAnswer) {
@@ -135,6 +141,7 @@ app.post('/api/register', async (req, res) => {
             securityQuestion,
             securityAnswer: securityAnswer.toLowerCase().trim(),
             role: isXManager ? 'admin' : 'user',
+            avatarSeed: username, // Default avatar seed is the username
             isApproved: isXManager ? true : false
         });
 
@@ -144,12 +151,17 @@ app.post('/api/register', async (req, res) => {
             message: newUser.isApproved ? '관리자(xManager)로 자동 승인되었습니다.' : '회원가입이 완료되었습니다. 관리자 승인 대기 중입니다.'
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+        console.error('Registration Error:', err);
+        res.status(500).json({ error: '회원가입 처리 중 오류가 발생했습니다.' });
     }
 });
 
 app.post('/api/login', async (req, res) => {
+    // Check Database Connection
+    if (mongoose.connection.readyState !== 1) {
+        return res.status(503).json({ error: '데이터베이스에 연결되지 않았습니다. 잠시 후 다시 시도해주세요.' });
+    }
+
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -157,9 +169,17 @@ app.post('/api/login', async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({ username, password }); // Should verify hash in production
+        const user = await User.findOne({ username }); // Case-sensitive search for login usually, but let's check exact match first
 
+        // For debugging
         if (!user) {
+            console.log(`Login failed: User '${username}' not found.`);
+            return res.status(401).json({ error: '아이디 또는 비밀번호가 올바르지 않습니다.' });
+        }
+
+        // Simple password check (plaintext)
+        if (user.password !== password) {
+            console.log(`Login failed: Incorrect password for '${username}'.`);
             return res.status(401).json({ error: '아이디 또는 비밀번호가 올바르지 않습니다.' });
         }
 
@@ -167,12 +187,13 @@ app.post('/api/login', async (req, res) => {
             id: user.id,
             username: user.username,
             role: user.role,
+            avatarSeed: user.avatarSeed || user.username,
             isApproved: user.isApproved,
             message: '로그인 성공!'
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+        console.error('Login Error:', err);
+        res.status(500).json({ error: '로그인 처리 중 오류가 발생했습니다.' });
     }
 });
 
@@ -290,13 +311,53 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
+// Update Avatar
+app.put('/api/user/avatar', async (req, res) => {
+    const { username, avatarSeed } = req.body;
+    try {
+        const user = await User.findOneAndUpdate(
+            { username },
+            { avatarSeed },
+            { new: true }
+        );
+        if (!user) return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+        res.json({ message: '아바타가 변경되었습니다.', avatarSeed: user.avatarSeed });
+    } catch (err) {
+        res.status(500).json({ error: '오류가 발생했습니다.' });
+    }
+});
+
 
 // Post Routes
 app.get('/api/posts', async (req, res) => {
     try {
-        const posts = await Post.find().sort({ date: -1 }); // Newest first
-        res.json(posts);
+        const posts = await Post.find().sort({ date: -1 }).lean(); // Use lean() for performance and modification
+
+        // Enrich posts with author avatars
+        const enrichedPosts = await Promise.all(posts.map(async (post) => {
+            // Fetch post author avatar
+            const authorUser = await User.findOne({ username: post.author });
+            const authorAvatar = authorUser ? (authorUser.avatarSeed || authorUser.username) : post.author;
+
+            // Enrich comments with author avatars
+            const enrichedComments = await Promise.all(post.comments.map(async (comment) => {
+                const commentUser = await User.findOne({ username: comment.author });
+                return {
+                    ...comment,
+                    authorAvatar: commentUser ? (commentUser.avatarSeed || commentUser.username) : comment.author
+                };
+            }));
+
+            return {
+                ...post,
+                authorAvatar,
+                comments: enrichedComments
+            };
+        }));
+
+        res.json(enrichedPosts);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: '게시물을 불러오는데 실패했습니다.' });
     }
 });

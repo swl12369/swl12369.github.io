@@ -9,11 +9,13 @@ import ResetPassword from './components/ResetPassword';
 import AdminDashboard from './components/AdminDashboard';
 import DeleteAccount from './components/DeleteAccount';
 import { useAuth } from './context/AuthContext';
+import AvatarSelector from './components/AvatarSelector';
 
 function App() {
   const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin'
   const [selectedPost, setSelectedPost] = useState(null);
   const [createPostProps, setCreatePostProps] = useState({});
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const { isLoggedIn, user, logout } = useAuth();
 
   const handlePostCreated = () => {
@@ -105,7 +107,19 @@ function App() {
             </a>
           )}
 
-          <span className="nav-link user-info">{user.username}님</span>
+          <span className="nav-link user-info" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <img
+              src={`https://api.dicebear.com/9.x/dylan/svg?seed=${user.avatarSeed || user.username}`}
+              alt="avatar"
+              style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1px solid #ccc', cursor: 'pointer' }}
+              onClick={() => setShowAvatarSelector(true)}
+              title="아바타 변경하기"
+            />
+            {user.username}님
+          </span>
+          <a href="#" className="nav-link" onClick={() => setShowAvatarSelector(true)} style={{ fontSize: '0.8rem', color: '#666' }}>
+            (아바타 변경)
+          </a>
           <a href="#" className="nav-link" onClick={() => setView('delete-account')}>
             회원탈퇴
           </a>
@@ -136,9 +150,18 @@ function App() {
           <PostList onPostClick={handlePostClick} /> // Fallback
         )}
       </main>
+
+      {showAvatarSelector && (
+        <AvatarSelector
+          onCancel={() => setShowAvatarSelector(false)}
+          onSave={(newSeed) => {
+            setShowAvatarSelector(false);
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 }
-
 
 export default App;
