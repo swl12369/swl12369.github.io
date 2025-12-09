@@ -53,6 +53,7 @@ const CreatePost = ({ onPostCreated, initialTitle = '', isPollMode = false }) =>
             }
         } catch (err) {
             console.error('Error creating post:', err);
+            alert('게시물 작성에 실패했습니다. 서버 연결을 확인해주세요.');
         }
     };
 

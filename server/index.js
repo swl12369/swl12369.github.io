@@ -62,7 +62,7 @@ const postSchema = new mongoose.Schema({
     poll: {
         options: [{
             text: { type: String },
-            votes: [{ type: String }] // Array of usernames who voted
+            votes: [String] // Array of usernames
         }]
     }
 });
@@ -363,19 +363,32 @@ app.get('/api/posts', async (req, res) => {
 });
 
 app.post('/api/posts', upload.single('image'), async (req, res) => {
-    const { title, content, author } = req.body;
+    const { title, content, author, pollOption1, pollOption2 } = req.body;
     const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
     try {
-        const newPost = await Post.create({
+        const postData = {
             title,
             content,
             imagePath,
             author: author || '익명',
             comments: []
-        });
+        };
+
+        // Handle Poll Creation
+        if (pollOption1 && pollOption2) {
+            postData.poll = {
+                options: [
+                    { text: pollOption1, votes: [] },
+                    { text: pollOption2, votes: [] }
+                ]
+            };
+        }
+
+        const newPost = await Post.create(postData);
         res.status(201).json(newPost);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: '게시물 작성 실패' });
     }
 });
