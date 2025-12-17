@@ -21,7 +21,12 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI;
+let MONGO_URI = process.env.MONGO_URI;
+
+if (MONGO_URI) {
+    // Sanitization: Remove hidden whitespace and quotes from copy-pasting
+    MONGO_URI = MONGO_URI.trim().replace(/^["']|["']$/g, '');
+}
 
 // Connect to MongoDB
 if (MONGO_URI) {
