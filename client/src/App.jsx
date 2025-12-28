@@ -8,14 +8,17 @@ import FindUsername from './components/FindUsername';
 import ResetPassword from './components/ResetPassword';
 import AdminDashboard from './components/AdminDashboard';
 import DeleteAccount from './components/DeleteAccount';
+import UserList from './components/UserList';
+import Messages from './components/Messages';
 import { useAuth } from './context/AuthContext';
 import AvatarSelector from './components/AvatarSelector';
 
 function App() {
-  const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin'
+  const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin', 'users', 'messages'
   const [selectedPost, setSelectedPost] = useState(null);
   const [createPostProps, setCreatePostProps] = useState({});
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const { isLoggedIn, user, logout } = useAuth();
 
   const handlePostCreated = () => {
@@ -100,6 +103,9 @@ function App() {
           <a href="#" className="nav-link" onClick={handleCreateClick}>
             글쓰기
           </a>
+          <a href="#" className="nav-link" onClick={() => setView('users')} style={{ color: '#4CAF50' }}>
+            👥 회원보기
+          </a>
 
           {user.username === 'xManager' && (
             <a href="#" className="nav-link admin-link" onClick={() => setView('admin')} style={{ color: '#ff4444' }}>
@@ -142,6 +148,13 @@ function App() {
           />
         ) : view === 'create' ? (
           <CreatePost onPostCreated={handlePostCreated} {...createPostProps} />
+        ) : view === 'users' ? (
+          <UserList onSelectUser={(user) => {
+            setSelectedUser(user);
+            setView('messages');
+          }} />
+        ) : view === 'messages' ? (
+          <Messages selectedUser={selectedUser} onBack={() => setView('users')} />
         ) : view === 'admin' && user.username === 'xManager' ? (
           <AdminDashboard />
         ) : view === 'delete-account' ? (

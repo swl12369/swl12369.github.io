@@ -72,12 +72,22 @@ const postSchema = new mongoose.Schema({
     }
 });
 
+const messageSchema = new mongoose.Schema({
+    from: { type: String, required: true },
+    to: { type: String, required: true },
+    content: { type: String, required: true },
+    read: { type: Boolean, default: false },
+    date: { type: Date, default: Date.now }
+});
+
 // Configure schemas to include virtuals/id in JSON
 userSchema.set('toJSON', { virtuals: true });
 postSchema.set('toJSON', { virtuals: true });
+messageSchema.set('toJSON', { virtuals: true });
 
 const User = mongoose.model('User', userSchema);
 const Post = mongoose.model('Post', postSchema);
+const Message = mongoose.model('Message', messageSchema);
 
 // --- Admin Initialization ---
 const initializeAdmin = async () => {
@@ -553,6 +563,43 @@ app.delete('/api/posts/:id', async (req, res) => {
         res.json({ message: '게시물이 삭제되었습니다.' });
     } catch (err) {
         console.error('[DELETE /posts] Error:', err);
+        res.status(500).json({ error: '오류가 발생했습니다.' });
+    }
+});
+
+// Message Routes
+app.get('/api/messages/:username', async (req, res) => {
+    const { username } = req.params;
+    try {
+        const messages = await Message.find({
+            $or: [{ from: username }, { to: username }]
+        }).sort({ date: -1 });
+        res.json(messages);
+    } catch (err) {
+        res.status(500).json({ error: '메시지를 불러오는데 실패했습니다.' });
+    }
+});
+
+app.post('/api/messages', async (req, res) => {
+    const { from, to, content } = req.body;
+    try {
+        const newMessage = await Message.create({ from, to, content });
+        res.status(201).json(newMessage);
+    } catch (err) {
+        res.status(500).json({ error: '메시지 전송에 실패했습니다.' });
+    }
+});
+
+app.put('/api/messages/:id/read', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const message = await Message.findByIdAndUpdate(
+            id,
+            { read: true },
+            { new: true }
+        );
+        res.json(message);
+    } catch (err) {
         res.status(500).json({ error: '오류가 발생했습니다.' });
     }
 });
