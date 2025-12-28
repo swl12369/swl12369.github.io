@@ -111,9 +111,21 @@ const Messages = ({ selectedUser, onBack }) => {
                                     <div style={{
                                         fontSize: '0.7rem',
                                         marginTop: '0.25rem',
-                                        opacity: 0.7
+                                        opacity: 0.7,
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
                                     }}>
-                                        {new Date(msg.date).toLocaleString()}
+                                        <span>{new Date(msg.date).toLocaleString()}</span>
+                                        {isMine && (
+                                            <span style={{
+                                                fontSize: '0.65rem',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {msg.read ? '✓✓ 읽음' : '✓ 안읽음'}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
