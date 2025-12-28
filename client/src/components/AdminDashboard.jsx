@@ -40,6 +40,25 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleDelete = async (username) => {
+        if (!window.confirm(`정말로 ${username} 사용자를 삭제하시겠습니까?`)) return;
+
+        try {
+            const res = await fetch(`${API_URL}/api/admin/users/${username}`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                alert(`${username} 사용자가 삭제되었습니다.`);
+                fetchUsers(); // Refresh list
+            } else {
+                alert('삭제 실패');
+            }
+        } catch (err) {
+            alert('오류가 발생했습니다.');
+        }
+    };
+
     const pendingUsers = users.filter(u => !u.isApproved && u.role !== 'admin');
     const approvedUsers = users.filter(u => u.isApproved && u.role !== 'admin');
 
@@ -65,12 +84,22 @@ const AdminDashboard = () => {
                                     />
                                     {user.username}
                                 </span>
-                                <button
-                                    onClick={() => handleApprove(user.username)}
-                                    className="btn-approve"
-                                >
-                                    승인하기
-                                </button>
+                                <div>
+                                    <button
+                                        onClick={() => handleApprove(user.username)}
+                                        className="btn-approve"
+                                        style={{ marginRight: '5px' }}
+                                    >
+                                        승인
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(user.username)}
+                                        className="btn-delete"
+                                        style={{ backgroundColor: '#ff5252', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+                                    >
+                                        삭제
+                                    </button>
+                                </div>
                             </li>
                         ))}
                     </ul>
@@ -90,7 +119,16 @@ const AdminDashboard = () => {
                                 />
                                 {user.username}
                             </span>
-                            <span className="status-badge">승인됨</span>
+                            <div>
+                                <span className="status-badge" style={{ marginRight: '10px' }}>승인됨</span>
+                                <button
+                                    onClick={() => handleDelete(user.username)}
+                                    className="btn-delete"
+                                    style={{ backgroundColor: '#ff5252', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+                                >
+                                    삭제
+                                </button>
+                            </div>
                         </li>
                     ))}
                 </ul>
