@@ -27,7 +27,7 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
         }
 
         try {
-            const res = await fetch(`${API_URL}/api/posts/${post.id}`, {
+            const res = await fetch(`${API_URL}/api/posts/${post._id || post.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
                                             onClick={async () => {
                                                 if (!user) return alert('로그인이 필요합니다.');
                                                 try {
-                                                    const res = await fetch(`${API_URL}/api/posts/${post.id}/vote`, {
+                                                    const res = await fetch(`${API_URL}/api/posts/${post._id || post.id}/vote`, {
                                                         method: 'POST',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({ username: user.username, optionIndex: index })
@@ -216,7 +216,7 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
                                                 onClick={async () => {
                                                     if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
                                                     try {
-                                                        const res = await fetch(`${API_URL}/api/posts/${post.id}/comments/${comment.id}`, {
+                                                        const res = await fetch(`${API_URL}/api/posts/${post._id || post.id}/comments/${comment._id || comment.id}`, {
                                                             method: 'DELETE',
                                                             headers: { 'Content-Type': 'application/json' },
                                                             body: JSON.stringify({ username: user.username })
@@ -258,7 +258,7 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
                                 if (!content.trim()) return;
 
                                 try {
-                                    const res = await fetch(`${API_URL}/api/posts/${post.id}/comments`, {
+                                    const res = await fetch(`${API_URL}/api/posts/${post._id || post.id}/comments`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ username: user.username, content })
