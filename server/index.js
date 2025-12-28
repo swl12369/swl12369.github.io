@@ -98,10 +98,29 @@ const initializeAdmin = async () => {
                     isApproved: true
                 });
                 console.log(`Admin user '${adminUsername}' created.`);
+            } else if (!adminExists.isApproved) {
+                console.log('Auto-approving existing admin user...');
+                adminExists.isApproved = true;
+                await adminExists.save();
+                console.log(`Admin user '${adminUsername}' approved.`);
             }
         } catch (error) {
             console.error('Error initializing admin:', error);
         }
+    }
+
+    // Also auto-approve xManager if exists
+    try {
+        const xManager = await User.findOne({ username: 'xManager' });
+        if (xManager && !xManager.isApproved) {
+            console.log('Auto-approving xManager...');
+            xManager.isApproved = true;
+            xManager.role = 'admin';
+            await xManager.save();
+            console.log('xManager approved and set as admin.');
+        }
+    } catch (error) {
+        console.error('Error checking xManager:', error);
     }
 };
 
