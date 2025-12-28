@@ -604,6 +604,27 @@ app.put('/api/messages/:id/read', async (req, res) => {
     }
 });
 
+app.delete('/api/messages/:id', async (req, res) => {
+    const { id } = req.params;
+    const { username } = req.body;
+    try {
+        const message = await Message.findById(id);
+        if (!message) {
+            return res.status(404).json({ error: '메시지를 찾을 수 없습니다.' });
+        }
+
+        // Only allow deletion of own messages
+        if (message.from !== username) {
+            return res.status(403).json({ error: '본인이 보낸 메시지만 삭제할 수 있습니다.' });
+        }
+
+        await Message.deleteOne({ _id: id });
+        res.json({ message: '메시지가 삭제되었습니다.' });
+    } catch (err) {
+        res.status(500).json({ error: '오류가 발생했습니다.' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

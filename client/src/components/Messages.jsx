@@ -62,6 +62,27 @@ const Messages = ({ selectedUser, onBack }) => {
         }
     };
 
+    const handleDelete = async (messageId) => {
+        if (!window.confirm('이 메시지를 삭제하시겠습니까?')) return;
+
+        try {
+            const res = await fetch(`${API_URL}/api/messages/${messageId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user.username })
+            });
+
+            if (res.ok) {
+                fetchMessages();
+            } else {
+                const data = await res.json();
+                alert(data.error || '삭제에 실패했습니다.');
+            }
+        } catch (err) {
+            alert('오류가 발생했습니다.');
+        }
+    };
+
     return (
         <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
             <button onClick={onBack} style={{ marginBottom: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
@@ -97,9 +118,29 @@ const Messages = ({ selectedUser, onBack }) => {
                                 style={{
                                     display: 'flex',
                                     justifyContent: isMine ? 'flex-end' : 'flex-start',
-                                    marginBottom: '1rem'
+                                    marginBottom: '1rem',
+                                    alignItems: 'flex-start',
+                                    gap: '0.5rem'
                                 }}
                             >
+                                {isMine && (
+                                    <button
+                                        onClick={() => handleDelete(msg._id || msg.id)}
+                                        style={{
+                                            backgroundColor: '#ff5252',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            padding: '4px 8px',
+                                            fontSize: '0.7rem',
+                                            cursor: 'pointer',
+                                            marginTop: '0.5rem'
+                                        }}
+                                        title="메시지 삭제"
+                                    >
+                                        삭제
+                                    </button>
+                                )}
                                 <div style={{
                                     maxWidth: '70%',
                                     padding: '0.75rem 1rem',
