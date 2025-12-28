@@ -500,6 +500,34 @@ app.post('/api/posts/:id/comments', async (req, res) => {
     }
 });
 
+app.delete('/api/posts/:id/comments/:commentId', async (req, res) => {
+    const { id, commentId } = req.params;
+    const { username } = req.body;
+
+    try {
+        const post = await Post.findById(id);
+        if (!post) return res.status(404).json({ error: '게시물을 찾을 수 없습니다.' });
+
+        // Find comment subdocument
+        const comment = post.comments.id(commentId);
+        if (!comment) return res.status(404).json({ error: '댓글을 찾을 수 없습니다.' });
+
+        const user = await User.findOne({ username });
+        const isAdmin = user && (user.role === 'admin' || user.username === 'xManager');
+
+        if (comment.author !== username && !isAdmin) {
+            return res.status(403).json({ error: '본인의 댓글만 삭제할 수 있습니다.' });
+        }
+
+        comment.deleteOne();
+        await post.save();
+        res.json(post);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '오류가 발생했습니다.' });
+    }
+});
+
 // ... (Delete Comment skipped for brevity, adding similar logs to Vote/Delete Post)
 
 app.post('/api/posts/:id/vote', async (req, res) => {
