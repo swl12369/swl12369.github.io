@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PostList from './components/PostList';
 import CreatePost from './components/CreatePost';
 import PostDetail from './components/PostDetail';
@@ -12,6 +12,7 @@ import UserList from './components/UserList';
 import Messages from './components/Messages';
 import { useAuth } from './context/AuthContext';
 import AvatarSelector from './components/AvatarSelector';
+import { API_URL } from './config';
 
 function App() {
   const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin', 'users', 'messages'
@@ -19,7 +20,28 @@ function App() {
   const [createPostProps, setCreatePostProps] = useState({});
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { isLoggedIn, user, logout } = useAuth();
+
+  // Check for unread messages every 5 seconds
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      const checkUnread = async () => {
+        try {
+          const res = await fetch(`${API_URL}/api/messages/${user.username}`);
+          const messages = await res.json();
+          const unread = messages.filter(m => m.to === user.username && !m.read).length;
+          setUnreadCount(unread);
+        } catch (err) {
+          console.error('Failed to check unread messages:', err);
+        }
+      };
+
+      checkUnread();
+      const interval = setInterval(checkUnread, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isLoggedIn, user]);
 
   const handlePostCreated = () => {
     setView('home');
@@ -103,8 +125,30 @@ function App() {
           <a href="#" className="nav-link" onClick={handleCreateClick}>
             글쓰기
           </a>
-          <a href="#" className="nav-link" onClick={() => setView('users')} style={{ color: '#4CAF50' }}>
+          <a
+            href="#"
+            className="nav-link"
+            onClick={() => setView('users')}
+            style={{ color: '#4CAF50', position: 'relative', display: 'inline-block' }}
+          >
             👥 회원보기
+            {unreadCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-8px',
+                right: '-10px',
+                backgroundColor: '#FF9800',
+                color: 'white',
+                borderRadius: '50%',
+                padding: '2px 6px',
+                fontSize: '0.7rem',
+                fontWeight: 'bold',
+                minWidth: '18px',
+                textAlign: 'center'
+              }}>
+                {unreadCount}
+              </span>
+            )}
           </a>
 
           {user.username === 'xManager' && (
