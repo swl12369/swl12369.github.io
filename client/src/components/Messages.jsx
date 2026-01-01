@@ -10,20 +10,36 @@ const Messages = ({ selectedUser, onBack }) => {
 
     // Play notification sound
     const playNotificationSound = () => {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+        try {
+            // Create audio context
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
 
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
 
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            // Set frequency and type
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
 
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
+            // Set volume
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            // Play sound
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } catch (error) {
+            console.log('Notification sound failed:', error);
+            // Fallback: try using beep sound
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS57OihUBELTKXh8bllHAU2jdXyzn0vBSh+zPDajkALFF+16+mjUxELSKHf8r1pIAUsgs/y24k2CBhku+zooVARC0yl4fG5ZRwFNo3V8s59LwUofszw2o5ACxRftevrpFIRC0mh3/K9aR8FLILPstmJNggYZLvs6KFQEQtMpeHxuWUcBTaN1fLOfS8FKH7M8NqOQAsUX7Xr66RSEQtJod/yvWkfBSyCz7LZiTYIGGS77OihUBELTKXh8bllHAU2jdXyzn0vBSh+zPDajkALFF+16+ukUhELSaHf8r1pHwUsgs+y2Yk2CBhku+zooVARC0yl4fG5ZRwFNo3V8s59LwUofszw2o5ACxRftevrpFIRC0mh3/K9aR8FLILPstmJNggYZLvs6KFQEQtMpeHxuWUcBTaN1fLOfS8FKH7M8NqOQAsUX7Xr66RSEQtJod/yvWkfBSyCz7LZiTYIGGS77OihUBELTKXh8bllHAU2jdXyzn0vBSh+zPDajkALFF+16+ukUhELSaHf8r1pHwUsgs+y2Yk2CBhku+zooVARC0yl4fG5ZRwFNo3V8s59LwUofszw2o5ACxRftevrpFIRC0mh3/K9aR8FLILPstmJNggYZLvs6KFQEQtMpeHxuWUcBTaN1fLOfS8FKH7M8NqOQAsUX7Xr66RSEQtJod/yvWkfBSyCz7LZiTYIGGS77OihUBELTKXh8bllHAU2jdXyzn0vBSh+zPDajkALFF+16+ukUhELSaHf8r1pHwUsgs+y2Yk2CBhku+zooVARC0yl4fG5ZRwFNo3V8s59LwUofszw2o5ACxRftevrpFIRC0mh3/K9aR8FLILPstmJNggYZLvs6KFQEQtMpeHxuWUcBTaN1fLOfS8FKH7M8NqOQAsUX7Xr66RSEQtJod/yvWkfBQ==');
+                audio.play();
+            } catch (e) {
+                console.log('Fallback sound also failed');
+            }
+        }
     };
 
     useEffect(() => {

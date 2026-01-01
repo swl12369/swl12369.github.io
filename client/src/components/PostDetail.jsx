@@ -190,6 +190,11 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
                         </div>
                     )}
 
+                    {/* Post Content */}
+                    <div style={{ padding: '2rem', fontSize: '1.1rem', lineHeight: '1.8', color: '#333' }}>
+                        {post.content}
+                    </div>
+
                     {/* Comment Section */}
                     <div style={{ padding: '2rem', borderTop: '1px solid #eee' }}>
                         <h3>댓글 ({post.comments ? post.comments.length : 0})</h3>
