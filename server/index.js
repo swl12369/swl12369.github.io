@@ -83,7 +83,7 @@ const messageSchema = new mongoose.Schema({
 
 const groupChatSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    members: [{ type: String, required: true }], // Array of usernames
+    members: [{ type: String, required: true }],
     messages: [{
         from: { type: String, required: true },
         content: { type: String, required: true },
@@ -93,16 +93,28 @@ const groupChatSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+const callSchema = new mongoose.Schema({
+    from: { type: String, required: true },
+    to: { type: String, required: true },
+    offer: { type: Object },
+    answer: { type: Object },
+    iceCandidates: [{ type: Object }],
+    status: { type: String, enum: ['calling', 'answered', 'ended'], default: 'calling' },
+    createdAt: { type: Date, default: Date.now, expires: 300 } // Auto-delete after 5 minutes
+});
+
 // Configure schemas to include virtuals/id in JSON
 userSchema.set('toJSON', { virtuals: true });
 postSchema.set('toJSON', { virtuals: true });
 messageSchema.set('toJSON', { virtuals: true });
 groupChatSchema.set('toJSON', { virtuals: true });
+callSchema.set('toJSON', { virtuals: true });
 
 const User = mongoose.model('User', userSchema);
 const Post = mongoose.model('Post', postSchema);
 const Message = mongoose.model('Message', messageSchema);
 const GroupChat = mongoose.model('GroupChat', groupChatSchema);
+const Call = mongoose.model('Call', callSchema);
 
 // --- Admin Initialization ---
 const initializeAdmin = async () => {
@@ -787,6 +799,86 @@ app.delete('/api/groupchats/:id', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: '오류가 발생했습니다.' });
+    }
+});
+
+// Voice Call Routes
+app.post('/api/calls/initiate', async (req, res) => {
+    const { from, to, offer } = req.body;
+    try {
+        // Delete any existing calls between these users
+        await Call.deleteMany({
+            $or: [
+                { from, to },
+                { from: to, to: from }
+            ]
+        });
+
+        const call = await Call.create({ from, to, offer, status: 'calling' });
+        res.status(201).json(call);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '통화 시작에 실패했습니다.' });
+    }
+});
+
+app.get('/api/calls/incoming/:username', async (req, res) => {
+    const { username } = req.params;
+    try {
+        const call = await Call.findOne({ to: username, status: 'calling' });
+        res.json(call);
+    } catch (err) {
+        res.status(500).json({ error: '통화 확인에 실패했습니다.' });
+    }
+});
+
+app.post('/api/calls/:id/answer', async (req, res) => {
+    const { id } = req.params;
+    const { answer } = req.body;
+    try {
+        const call = await Call.findByIdAndUpdate(
+            id,
+            { answer, status: 'answered' },
+            { new: true }
+        );
+        res.json(call);
+    } catch (err) {
+        res.status(500).json({ error: '통화 응답에 실패했습니다.' });
+    }
+});
+
+app.get('/api/calls/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const call = await Call.findById(id);
+        res.json(call);
+    } catch (err) {
+        res.status(500).json({ error: '통화 정보를 가져오는데 실패했습니다.' });
+    }
+});
+
+app.post('/api/calls/:id/ice', async (req, res) => {
+    const { id } = req.params;
+    const { candidate } = req.body;
+    try {
+        const call = await Call.findById(id);
+        if (!call) return res.status(404).json({ error: '통화를 찾을 수 없습니다.' });
+
+        call.iceCandidates.push(candidate);
+        await call.save();
+        res.json(call);
+    } catch (err) {
+        res.status(500).json({ error: 'ICE candidate 추가에 실패했습니다.' });
+    }
+});
+
+app.delete('/api/calls/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await Call.findByIdAndUpdate(id, { status: 'ended' });
+        res.json({ message: '통화가 종료되었습니다.' });
+    } catch (err) {
+        res.status(500).json({ error: '통화 종료에 실패했습니다.' });
     }
 });
 
