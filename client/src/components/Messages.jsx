@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
 import { getAvatarUrl } from '../utils/avatar';
-import VoiceCall from './VoiceCall';
 
 const Messages = ({ selectedUser, onBack }) => {
     const { user } = useAuth();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [previousMessageCount, setPreviousMessageCount] = useState(0);
-    const [showVoiceCall, setShowVoiceCall] = useState(false);
 
     // Play notification sound
     const playNotificationSound = () => {
@@ -139,26 +137,13 @@ const Messages = ({ selectedUser, onBack }) => {
                 ← 뒤로가기
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <img
-                        src={getAvatarUrl(selectedUser)}
-                        alt="avatar"
-                        style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                    />
-                    <h2 style={{ margin: 0 }}>{selectedUser.username}님과의 대화</h2>
-                </div>
-                <button
-                    onClick={() => setShowVoiceCall(true)}
-                    style={{
-                        backgroundColor: '#48bb78',
-                        padding: '0.75rem 1.5rem',
-                        fontSize: '1.2rem'
-                    }}
-                    title="음성 통화"
-                >
-                    📞
-                </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                <img
+                    src={getAvatarUrl(selectedUser)}
+                    alt="avatar"
+                    style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+                />
+                <h2 style={{ margin: 0 }}>{selectedUser.username}님과의 대화</h2>
             </div>
 
             <div style={{
@@ -267,13 +252,6 @@ const Messages = ({ selectedUser, onBack }) => {
                     전송
                 </button>
             </form>
-
-            {showVoiceCall && (
-                <VoiceCall
-                    targetUser={selectedUser}
-                    onClose={() => setShowVoiceCall(false)}
-                />
-            )}
         </div>
     );
 };
