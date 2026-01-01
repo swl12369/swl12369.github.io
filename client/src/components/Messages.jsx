@@ -12,7 +12,6 @@ const Messages = ({ selectedUser, onBack }) => {
     // Play notification sound
     const playNotificationSound = () => {
         try {
-            // Create audio context
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
@@ -20,33 +19,22 @@ const Messages = ({ selectedUser, onBack }) => {
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
 
-            // Set frequency and type
             oscillator.frequency.value = 800;
             oscillator.type = 'sine';
-
-            // Set volume
             gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
 
-            // Play sound
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.5);
         } catch (error) {
             console.log('Notification sound failed:', error);
-            // Fallback: try using beep sound
-            try {
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS57OihUBELTKXh8bllHAU2jdXyzn0vBSh+zPDajkALFF+16+mjUxELSKHf8r1pIAUsgs/y24k2CBhku+zooVARC0yl4fG5ZRwFNo3V8s59LwUofszw2o5ACxRftevrpFIRC0mh3/K9aR8FLILPstmJNggYZLvs6KFQEQtMpeHxuWUcBTaN1fLOfS8FKH7M8NqOQAsUX7Xr66RSEQtJod/yvWkfBSyCz7LZiTYIGGS77OihUBELTKXh8bllHAU2jdXyzn0vBSh+zPDajkALFF+16+ukUhELSaHf8r1pHwUsgs+y2Yk2CBhku+zooVARC0yl4fG5ZRwFNo3V8s59LwUofszw2o5ACxRftevrpFIRC0mh3/K9aR8FLILPstmJNggYZLvs6KFQEQtMpeHxuWUcBTaN1fLOfS8FKH7M8NqOQAsUX7Xr66RSEQtJod/yvWkfBSyCz7LZiTYIGGS77OihUBELTKXh8bllHAU2jdXyzn0vBSh+zPDajkALFF+16+ukUhELSaHf8r1pHwUsgs+y2Yk2CBhku+zooVARC0yl4fG5ZRwFNo3V8s59LwUofszw2o5ACxRftevrpFIRC0mh3/K9aR8FLILPstmJNggYZLvs6KFQEQtMpeHxuWUcBTaN1fLOfS8FKH7M8NqOQAsUX7Xr66RSEQtJod/yvWkfBSyCz7LZiTYIGGS77OihUBELTKXh8bllHAU2jdXyzn0vBSh+zPDajkALFF+16+ukUhELSaHf8r1pHwUsgs+y2Yk2CBhku+zooVARC0yl4fG5ZRwFNo3V8s59LwUofszw2o5ACxRftevrpFIRC0mh3/K9aR8FLILPstmJNggYZLvs6KFQEQtMpeHxuWUcBTaN1fLOfS8FKH7M8NqOQAsUX7Xr66RSEQtJod/yvWkfBQ==');
-                audio.play();
-            } catch (e) {
-                console.log('Fallback sound also failed');
-            }
         }
     };
 
     useEffect(() => {
         if (user && selectedUser) {
             fetchMessages();
-            const interval = setInterval(fetchMessages, 3000); // 3초마다 새 메시지 확인
+            const interval = setInterval(fetchMessages, 3000);
             return () => clearInterval(interval);
         }
     }, [user, selectedUser]);
@@ -56,18 +44,15 @@ const Messages = ({ selectedUser, onBack }) => {
             const res = await fetch(`${API_URL}/api/messages/${user.username}`);
             const allMessages = await res.json();
 
-            // 선택한 사용자와의 대화만 필터링
             const conversation = allMessages.filter(
                 m => (m.from === user.username && m.to === selectedUser.username) ||
                     (m.from === selectedUser.username && m.to === user.username)
             );
 
-            const sortedConversation = conversation.reverse(); // 오래된 것부터 표시
+            const sortedConversation = conversation.reverse();
 
-            // Check if new message arrived
             if (previousMessageCount > 0 && sortedConversation.length > previousMessageCount) {
                 const newMsg = sortedConversation[sortedConversation.length - 1];
-                // Only play sound if the new message is from the other person
                 if (newMsg.from === selectedUser.username) {
                     playNotificationSound();
                 }
@@ -76,7 +61,6 @@ const Messages = ({ selectedUser, onBack }) => {
             setPreviousMessageCount(sortedConversation.length);
             setMessages(sortedConversation);
 
-            // 읽지 않은 메시지 읽음 처리
             conversation.forEach(async (msg) => {
                 if (msg.to === user.username && !msg.read) {
                     await fetch(`${API_URL}/api/messages/${msg._id || msg.id}/read`, {
@@ -193,7 +177,6 @@ const Messages = ({ selectedUser, onBack }) => {
                                     gap: '0.5rem'
                                 }}
                             >
-                                {/* Avatar for received messages */}
                                 {!isMine && (
                                     <img
                                         src={getAvatarUrl(selectedUser)}
@@ -213,7 +196,6 @@ const Messages = ({ selectedUser, onBack }) => {
                                     flexDirection: 'column',
                                     alignItems: isMine ? 'flex-end' : 'flex-start'
                                 }}>
-                                    {/* Message Bubble */}
                                     <div style={{
                                         padding: '0.875rem 1.125rem',
                                         borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
@@ -227,7 +209,6 @@ const Messages = ({ selectedUser, onBack }) => {
                                         {msg.content}
                                     </div>
 
-                                    {/* Time and Read Status */}
                                     <div style={{
                                         fontSize: '0.7rem',
                                         color: '#7C7C7C',
@@ -301,125 +282,6 @@ const Messages = ({ selectedUser, onBack }) => {
                 </button>
             </form>
         </div>
-    );
-};
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-                <img
-                    src={getAvatarUrl(selectedUser)}
-                    alt="avatar"
-                    style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                />
-                <h2 style={{ margin: 0 }}>{selectedUser.username}님과의 대화</h2>
-            </div>
-
-            <div style={{
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                padding: '1rem',
-                height: '400px',
-                overflowY: 'auto',
-                backgroundColor: '#fff',
-                marginBottom: '1rem'
-            }}>
-                {messages.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#999' }}>아직 메시지가 없습니다.</p>
-                ) : (
-                    messages.map((msg, index) => {
-                        const isMine = msg.from === user.username;
-                        return (
-                            <div
-                                key={index}
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: isMine ? 'flex-end' : 'flex-start',
-                                    marginBottom: '1rem',
-                                    alignItems: 'flex-start',
-                                    gap: '0.5rem'
-                                }}
-                            >
-                                {isMine && (
-                                    <button
-                                        onClick={() => handleDelete(msg._id || msg.id)}
-                                        style={{
-                                            backgroundColor: '#ff5252',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            padding: '4px 8px',
-                                            fontSize: '0.7rem',
-                                            cursor: 'pointer',
-                                            marginTop: '0.5rem'
-                                        }}
-                                        title="메시지 삭제"
-                                    >
-                                        삭제
-                                    </button>
-                                )}
-                                <div style={{
-                                    maxWidth: '70%',
-                                    padding: '0.75rem 1rem',
-                                    borderRadius: '12px',
-                                    backgroundColor: isMine ? '#1976d2' : '#f0f0f0',
-                                    color: isMine ? '#fff' : '#000'
-                                }}>
-                                    <div>{msg.content}</div>
-                                    <div style={{
-                                        fontSize: '0.7rem',
-                                        marginTop: '0.25rem',
-                                        opacity: 0.7,
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        gap: '0.5rem'
-                                    }}>
-                                        <span>{new Date(msg.date).toLocaleString()}</span>
-                                        {isMine && (
-                                            <span style={{
-                                                fontSize: '0.65rem',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                {msg.read ? '✓✓ 읽음' : '✓ 안읽음'}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
-            </div>
-
-            <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.5rem' }}>
-                <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="메시지를 입력하세요..."
-                    style={{
-                        flex: 1,
-                        padding: '0.75rem',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        fontSize: '1rem'
-                    }}
-                />
-                <button
-                    type="submit"
-                    style={{
-                        padding: '0.75rem 1.5rem',
-                        backgroundColor: '#1976d2',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '1rem'
-                    }}
-                >
-                    전송
-                </button>
-            </form>
-        </div >
     );
 };
 
