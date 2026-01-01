@@ -102,7 +102,7 @@ const PostDetail = ({ post, onBack, onPostUpdated }) => {
                 <div className="detail-content">
 
                     {/* Poll Section */}
-                    {post.poll && (
+                    {post.poll && post.poll.options && post.poll.options.length > 0 && (
                         <div style={{ margin: '2rem 2rem 0', padding: '1.5rem', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                             <h3 style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#1A237E' }}>🗳️ 투표</h3>
                             <div style={{ display: 'flex', gap: '1rem', flexDirection: 'row', minHeight: '150px' }}>
