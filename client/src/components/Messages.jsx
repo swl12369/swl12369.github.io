@@ -6,6 +6,25 @@ const Messages = ({ selectedUser, onBack }) => {
     const { user } = useAuth();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    const [previousMessageCount, setPreviousMessageCount] = useState(0);
+
+    // Play notification sound
+    const playNotificationSound = () => {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+    };
 
     useEffect(() => {
         if (user && selectedUser) {
@@ -26,7 +45,19 @@ const Messages = ({ selectedUser, onBack }) => {
                     (m.from === selectedUser.username && m.to === user.username)
             );
 
-            setMessages(conversation.reverse()); // 오래된 것부터 표시
+            const sortedConversation = conversation.reverse(); // 오래된 것부터 표시
+
+            // Check if new message arrived
+            if (previousMessageCount > 0 && sortedConversation.length > previousMessageCount) {
+                const newMsg = sortedConversation[sortedConversation.length - 1];
+                // Only play sound if the new message is from the other person
+                if (newMsg.from === selectedUser.username) {
+                    playNotificationSound();
+                }
+            }
+
+            setPreviousMessageCount(sortedConversation.length);
+            setMessages(sortedConversation);
 
             // 읽지 않은 메시지 읽음 처리
             conversation.forEach(async (msg) => {
