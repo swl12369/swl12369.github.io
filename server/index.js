@@ -49,6 +49,7 @@ const userSchema = new mongoose.Schema({
     securityAnswer: { type: String, required: true },
     role: { type: String, default: 'user' },
     avatarSeed: { type: String }, // For customizable avatars
+    avatarPath: { type: String }, // For uploaded avatar images
     isApproved: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
@@ -267,6 +268,35 @@ app.delete('/api/admin/users/:username', async (req, res) => {
         }
         res.json({ message: '사용자가 삭제되었습니다.' });
     } catch (err) {
+        res.status(500).json({ error: '오류가 발생했습니다.' });
+    }
+});
+
+// Avatar Upload
+app.post('/api/users/:username/avatar', upload.single('avatar'), async (req, res) => {
+    const { username } = req.params;
+    try {
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+        }
+
+        // Delete old avatar file if exists
+        if (user.avatarPath) {
+            const oldPath = path.join(__dirname, user.avatarPath);
+            if (fs.existsSync(oldPath)) {
+                fs.unlinkSync(oldPath);
+            }
+        }
+
+        // Save new avatar path
+        user.avatarPath = `/uploads/${req.file.filename}`;
+        user.avatarSeed = null; // Clear seed when using custom image
+        await user.save();
+
+        res.json({ avatarPath: user.avatarPath });
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ error: '오류가 발생했습니다.' });
     }
 });
