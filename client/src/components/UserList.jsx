@@ -124,8 +124,25 @@ const UserList = ({ onSelectUser, onSelectGroup }) => {
                 </button>
             </div>
 
+            {/* Main Search Bar */}
+            <input
+                type="text"
+                placeholder="🔍 회원 검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                    width: '100%',
+                    padding: '0.875rem 1.125rem',
+                    marginBottom: '1.5rem',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '12px',
+                    fontSize: '1rem',
+                    transition: 'all 0.3s'
+                }}
+            />
+
             <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
-                {users.map(user => (
+                {filteredUsers.map(user => (
                     <div
                         key={user.id}
                         onClick={() => onSelectUser(user)}
