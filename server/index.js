@@ -768,6 +768,28 @@ app.post('/api/groupchats/:id/leave', async (req, res) => {
     }
 });
 
+app.delete('/api/groupchats/:id', async (req, res) => {
+    const { id } = req.params;
+    const { username } = req.body;
+    try {
+        const groupChat = await GroupChat.findById(id);
+        if (!groupChat) {
+            return res.status(404).json({ error: '그룹 채팅을 찾을 수 없습니다.' });
+        }
+
+        // Only creator can delete
+        if (groupChat.createdBy !== username) {
+            return res.status(403).json({ error: '채팅방을 만든 사람만 삭제할 수 있습니다.' });
+        }
+
+        await GroupChat.deleteOne({ _id: id });
+        res.json({ message: '채팅방이 삭제되었습니다.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '오류가 발생했습니다.' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

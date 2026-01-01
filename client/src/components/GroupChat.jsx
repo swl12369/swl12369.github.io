@@ -100,21 +100,58 @@ const GroupChat = ({ group, onBack }) => {
         }
     };
 
+    const handleDeleteGroup = async () => {
+        if (!confirm('정말 이 채팅방을 삭제하시겠습니까? 모든 메시지가 사라집니다.')) return;
+
+        try {
+            const res = await fetch(`${API_URL}/api/groupchats/${group._id || group.id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user.username })
+            });
+
+            if (res.ok) {
+                alert('채팅방이 삭제되었습니다.');
+                onBack();
+            } else {
+                const error = await res.json();
+                alert(error.error || '채팅방 삭제에 실패했습니다.');
+            }
+        } catch (err) {
+            alert('오류가 발생했습니다.');
+        }
+    };
+
+    const isCreator = group.createdBy === user.username;
+
     return (
         <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <button onClick={onBack} style={{ padding: '0.5rem 1rem' }}>
                     ← 뒤로가기
                 </button>
-                <button
-                    onClick={handleLeaveGroup}
-                    style={{
-                        backgroundColor: '#f56565',
-                        padding: '0.5rem 1rem'
-                    }}
-                >
-                    🚪 나가기
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {isCreator && (
+                        <button
+                            onClick={handleDeleteGroup}
+                            style={{
+                                backgroundColor: '#e53e3e',
+                                padding: '0.5rem 1rem'
+                            }}
+                        >
+                            🗑️ 삭제
+                        </button>
+                    )}
+                    <button
+                        onClick={handleLeaveGroup}
+                        style={{
+                            backgroundColor: '#f56565',
+                            padding: '0.5rem 1rem'
+                        }}
+                    >
+                        🚪 나가기
+                    </button>
+                </div>
             </div>
 
             <div style={{ marginBottom: '1rem', padding: '1.5rem', backgroundColor: '#f7fafc', borderRadius: '12px' }}>
