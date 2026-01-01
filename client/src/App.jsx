@@ -13,6 +13,7 @@ import Messages from './components/Messages';
 import { useAuth } from './context/AuthContext';
 import AvatarSelector from './components/AvatarSelector';
 import { API_URL } from './config';
+import { getAvatarUrl } from './utils/avatar';
 
 function App() {
   const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin', 'users', 'messages'
@@ -159,7 +160,7 @@ function App() {
 
           <span className="nav-link user-info" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <img
-              src={`https://api.dicebear.com/9.x/dylan/svg?seed=${user.avatarSeed || user.username}`}
+              src={getAvatarUrl(user)}
               alt="avatar"
               style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1px solid #ccc', cursor: 'pointer' }}
               onClick={() => setShowAvatarSelector(true)}
