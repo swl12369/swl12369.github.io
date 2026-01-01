@@ -132,10 +132,177 @@ const Messages = ({ selectedUser, onBack }) => {
     };
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-            <button onClick={onBack} style={{ marginBottom: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
+        <div style={{ padding: '1rem', maxWidth: '800px', margin: '0 auto' }}>
+            <button
+                onClick={onBack}
+                style={{
+                    marginBottom: '1rem',
+                    background: '#F6F6F6',
+                    color: '#191919'
+                }}
+            >
                 ← 뒤로가기
             </button>
+
+            {/* KakaoTalk-style Header */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                marginBottom: '1rem',
+                padding: '1.25rem',
+                backgroundColor: '#FEE500',
+                borderRadius: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+                <img
+                    src={getAvatarUrl(selectedUser)}
+                    alt="avatar"
+                    style={{ width: '48px', height: '48px', borderRadius: '50%', border: '2px solid #3C1E1E' }}
+                />
+                <h2 style={{ margin: 0, color: '#3C1E1E', fontWeight: '700' }}>
+                    {selectedUser.username}
+                </h2>
+            </div>
+
+            {/* Chat Messages Area */}
+            <div style={{
+                backgroundColor: '#B2C7D9',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                height: '500px',
+                overflowY: 'auto',
+                marginBottom: '1rem',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)'
+            }}>
+                {messages.length === 0 ? (
+                    <p style={{ textAlign: 'center', color: '#7C7C7C', marginTop: '3rem' }}>
+                        아직 메시지가 없습니다.
+                    </p>
+                ) : (
+                    messages.map((msg, index) => {
+                        const isMine = msg.from === user.username;
+                        return (
+                            <div
+                                key={index}
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: isMine ? 'flex-end' : 'flex-start',
+                                    marginBottom: '0.75rem',
+                                    alignItems: 'flex-end',
+                                    gap: '0.5rem'
+                                }}
+                            >
+                                {/* Avatar for received messages */}
+                                {!isMine && (
+                                    <img
+                                        src={getAvatarUrl(selectedUser)}
+                                        alt="avatar"
+                                        style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            marginBottom: '0.25rem'
+                                        }}
+                                    />
+                                )}
+
+                                <div style={{
+                                    maxWidth: '70%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: isMine ? 'flex-end' : 'flex-start'
+                                }}>
+                                    {/* Message Bubble */}
+                                    <div style={{
+                                        padding: '0.875rem 1.125rem',
+                                        borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                                        backgroundColor: isMine ? '#FEE500' : '#FFFFFF',
+                                        color: '#191919',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                        wordBreak: 'break-word',
+                                        fontSize: '0.95rem',
+                                        lineHeight: '1.5'
+                                    }}>
+                                        {msg.content}
+                                    </div>
+
+                                    {/* Time and Read Status */}
+                                    <div style={{
+                                        fontSize: '0.7rem',
+                                        color: '#7C7C7C',
+                                        marginTop: '0.25rem',
+                                        display: 'flex',
+                                        gap: '0.5rem',
+                                        alignItems: 'center'
+                                    }}>
+                                        <span>{new Date(msg.date).toLocaleTimeString('ko-KR', {
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}</span>
+                                        {isMine && (
+                                            <span style={{ color: msg.read ? '#00C73C' : '#FFB800' }}>
+                                                {msg.read ? '✓✓ 읽음' : '✓ 안읽음'}
+                                            </span>
+                                        )}
+                                        {isMine && (
+                                            <button
+                                                onClick={() => handleDelete(msg._id || msg.id)}
+                                                style={{
+                                                    background: 'transparent',
+                                                    color: '#FF4444',
+                                                    padding: '0.25rem 0.5rem',
+                                                    fontSize: '0.7rem',
+                                                    boxShadow: 'none'
+                                                }}
+                                            >
+                                                삭제
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+
+            {/* Input Area */}
+            <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.75rem' }}>
+                <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="메시지를 입력하세요"
+                    style={{
+                        flex: 1,
+                        padding: '1rem 1.25rem',
+                        border: '2px solid #E5E5EA',
+                        borderRadius: '24px',
+                        fontSize: '0.95rem',
+                        backgroundColor: '#FFFFFF'
+                    }}
+                />
+                <button
+                    type="submit"
+                    style={{
+                        padding: '1rem 2rem',
+                        backgroundColor: '#FEE500',
+                        color: '#3C1E1E',
+                        border: 'none',
+                        borderRadius: '24px',
+                        cursor: 'pointer',
+                        fontSize: '0.95rem',
+                        fontWeight: '700',
+                        boxShadow: '0 2px 8px rgba(254,229,0,0.3)'
+                    }}
+                >
+                    전송
+                </button>
+            </form>
+        </div>
+    );
+};
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
                 <img
@@ -252,7 +419,7 @@ const Messages = ({ selectedUser, onBack }) => {
                     전송
                 </button>
             </form>
-        </div>
+        </div >
     );
 };
 
