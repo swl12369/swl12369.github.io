@@ -81,14 +81,28 @@ const messageSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now }
 });
 
+const groupChatSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    members: [{ type: String, required: true }], // Array of usernames
+    messages: [{
+        from: { type: String, required: true },
+        content: { type: String, required: true },
+        date: { type: Date, default: Date.now }
+    }],
+    createdBy: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
 // Configure schemas to include virtuals/id in JSON
 userSchema.set('toJSON', { virtuals: true });
 postSchema.set('toJSON', { virtuals: true });
 messageSchema.set('toJSON', { virtuals: true });
+groupChatSchema.set('toJSON', { virtuals: true });
 
 const User = mongoose.model('User', userSchema);
 const Post = mongoose.model('Post', postSchema);
 const Message = mongoose.model('Message', messageSchema);
+const GroupChat = mongoose.model('GroupChat', groupChatSchema);
 
 // --- Admin Initialization ---
 const initializeAdmin = async () => {
@@ -680,6 +694,51 @@ app.delete('/api/messages/:id', async (req, res) => {
         res.json({ message: '메시지가 삭제되었습니다.' });
     } catch (err) {
         res.status(500).json({ error: '오류가 발생했습니다.' });
+    }
+});
+
+// Group Chat Routes
+app.post('/api/groupchats', async (req, res) => {
+    const { name, members, createdBy } = req.body;
+    try {
+        const groupChat = await GroupChat.create({
+            name,
+            members,
+            createdBy,
+            messages: []
+        });
+        res.status(201).json(groupChat);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '그룹 채팅 생성에 실패했습니다.' });
+    }
+});
+
+app.get('/api/groupchats/:username', async (req, res) => {
+    const { username } = req.params;
+    try {
+        const groupChats = await GroupChat.find({ members: username });
+        res.json(groupChats);
+    } catch (err) {
+        res.status(500).json({ error: '그룹 채팅을 불러오는데 실패했습니다.' });
+    }
+});
+
+app.post('/api/groupchats/:id/messages', async (req, res) => {
+    const { id } = req.params;
+    const { from, content } = req.body;
+    try {
+        const groupChat = await GroupChat.findById(id);
+        if (!groupChat) {
+            return res.status(404).json({ error: '그룹 채팅을 찾을 수 없습니다.' });
+        }
+
+        groupChat.messages.push({ from, content, date: new Date() });
+        await groupChat.save();
+        res.json(groupChat);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '메시지 전송에 실패했습니다.' });
     }
 });
 

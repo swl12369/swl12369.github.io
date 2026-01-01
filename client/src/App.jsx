@@ -10,17 +10,19 @@ import AdminDashboard from './components/AdminDashboard';
 import DeleteAccount from './components/DeleteAccount';
 import UserList from './components/UserList';
 import Messages from './components/Messages';
+import GroupChat from './components/GroupChat';
 import { useAuth } from './context/AuthContext';
 import AvatarSelector from './components/AvatarSelector';
 import { API_URL } from './config';
 import { getAvatarUrl } from './utils/avatar';
 
 function App() {
-  const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin', 'users', 'messages'
+  const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin', 'users', 'messages', 'groupchat'
   const [selectedPost, setSelectedPost] = useState(null);
   const [createPostProps, setCreatePostProps] = useState({});
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const { isLoggedIn, user, logout } = useAuth();
 
@@ -194,12 +196,20 @@ function App() {
         ) : view === 'create' ? (
           <CreatePost onPostCreated={handlePostCreated} {...createPostProps} />
         ) : view === 'users' ? (
-          <UserList onSelectUser={(user) => {
-            setSelectedUser(user);
-            setView('messages');
-          }} />
+          <UserList
+            onSelectUser={(user) => {
+              setSelectedUser(user);
+              setView('messages');
+            }}
+            onSelectGroup={(group) => {
+              setSelectedGroup(group);
+              setView('groupchat');
+            }}
+          />
         ) : view === 'messages' ? (
           <Messages selectedUser={selectedUser} onBack={() => setView('users')} />
+        ) : view === 'groupchat' ? (
+          <GroupChat group={selectedGroup} onBack={() => setView('users')} />
         ) : view === 'admin' && user.username === 'xManager' ? (
           <AdminDashboard />
         ) : view === 'delete-account' ? (
