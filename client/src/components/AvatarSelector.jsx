@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
 
 const AvatarSelector = ({ onCancel, onSave }) => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [seed, setSeed] = useState(user.avatarSeed || user.username);
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -30,6 +30,19 @@ const AvatarSelector = ({ onCancel, onSave }) => {
         }
     };
 
+    const fetchUpdatedUser = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/admin/users`);
+            const users = await res.json();
+            const updatedUser = users.find(u => u.username === user.username);
+            if (updatedUser) {
+                updateUser(updatedUser);
+            }
+        } catch (err) {
+            console.error('Failed to fetch updated user:', err);
+        }
+    };
+
     const handleSave = async () => {
         setLoading(true);
         try {
@@ -45,8 +58,9 @@ const AvatarSelector = ({ onCancel, onSave }) => {
 
                 if (res.ok) {
                     alert('아바타가 업로드되었습니다!');
+                    await fetchUpdatedUser();
                     if (onSave) onSave(null);
-                    window.location.reload(); // Refresh to show new avatar
+                    window.location.reload();
                 } else {
                     alert('업로드 실패');
                 }
@@ -62,8 +76,9 @@ const AvatarSelector = ({ onCancel, onSave }) => {
 
                 if (res.ok) {
                     alert('아바타가 저장되었습니다!');
+                    await fetchUpdatedUser();
                     if (onSave) onSave(seed);
-                    window.location.reload(); // Refresh to show new avatar
+                    window.location.reload();
                 } else {
                     alert('저장 실패');
                 }
