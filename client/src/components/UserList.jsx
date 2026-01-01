@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
+import { getAvatarUrl } from '../utils/avatar';
 
 const UserList = ({ onSelectUser, onSelectGroup }) => {
     const { user: currentUser } = useAuth();
@@ -162,7 +163,7 @@ const UserList = ({ onSelectUser, onSelectGroup }) => {
                     >
                         <div style={{ position: 'relative' }}>
                             <img
-                                src={`https://api.dicebear.com/9.x/dylan/svg?seed=${user.avatarSeed || user.username}`}
+                                src={getAvatarUrl(user)}
                                 alt="avatar"
                                 style={{ width: '40px', height: '40px', borderRadius: '50%' }}
                             />

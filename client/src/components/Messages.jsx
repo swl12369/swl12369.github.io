@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
+import { getAvatarUrl } from '../utils/avatar';
 
 const Messages = ({ selectedUser, onBack }) => {
     const { user } = useAuth();
@@ -138,7 +139,7 @@ const Messages = ({ selectedUser, onBack }) => {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
                 <img
-                    src={`https://api.dicebear.com/9.x/dylan/svg?seed=${selectedUser.avatarSeed || selectedUser.username}`}
+                    src={getAvatarUrl(selectedUser)}
                     alt="avatar"
                     style={{ width: '40px', height: '40px', borderRadius: '50%' }}
                 />
