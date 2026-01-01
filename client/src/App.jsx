@@ -11,13 +11,14 @@ import DeleteAccount from './components/DeleteAccount';
 import UserList from './components/UserList';
 import Messages from './components/Messages';
 import GroupChat from './components/GroupChat';
+import GroupChatList from './components/GroupChatList';
 import { useAuth } from './context/AuthContext';
 import AvatarSelector from './components/AvatarSelector';
 import { API_URL } from './config';
 import { getAvatarUrl } from './utils/avatar';
 
 function App() {
-  const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin', 'users', 'messages', 'groupchat'
+  const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin', 'users', 'messages', 'groupchat', 'groupchatlist'
   const [selectedPost, setSelectedPost] = useState(null);
   const [createPostProps, setCreatePostProps] = useState({});
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
@@ -153,6 +154,14 @@ function App() {
               </span>
             )}
           </a>
+          <a
+            href="#"
+            className="nav-link"
+            onClick={() => setView('groupchatlist')}
+            style={{ color: '#667eea' }}
+          >
+            💬 채팅방
+          </a>
 
           {user.username === 'xManager' && (
             <a href="#" className="nav-link admin-link" onClick={() => setView('admin')} style={{ color: '#ff4444' }}>
@@ -208,8 +217,16 @@ function App() {
           />
         ) : view === 'messages' ? (
           <Messages selectedUser={selectedUser} onBack={() => setView('users')} />
+        ) : view === 'groupchatlist' ? (
+          <GroupChatList
+            onSelectGroup={(group) => {
+              setSelectedGroup(group);
+              setView('groupchat');
+            }}
+            onBack={() => setView('home')}
+          />
         ) : view === 'groupchat' ? (
-          <GroupChat group={selectedGroup} onBack={() => setView('users')} />
+          <GroupChat group={selectedGroup} onBack={() => setView('groupchatlist')} />
         ) : view === 'admin' && user.username === 'xManager' ? (
           <AdminDashboard />
         ) : view === 'delete-account' ? (

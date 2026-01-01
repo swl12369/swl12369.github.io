@@ -742,6 +742,32 @@ app.post('/api/groupchats/:id/messages', async (req, res) => {
     }
 });
 
+app.post('/api/groupchats/:id/leave', async (req, res) => {
+    const { id } = req.params;
+    const { username } = req.body;
+    try {
+        const groupChat = await GroupChat.findById(id);
+        if (!groupChat) {
+            return res.status(404).json({ error: '그룹 채팅을 찾을 수 없습니다.' });
+        }
+
+        // Remove user from members
+        groupChat.members = groupChat.members.filter(member => member !== username);
+
+        // If no members left, delete the group
+        if (groupChat.members.length === 0) {
+            await GroupChat.deleteOne({ _id: id });
+        } else {
+            await groupChat.save();
+        }
+
+        res.json({ message: '채팅방을 나갔습니다.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '오류가 발생했습니다.' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
