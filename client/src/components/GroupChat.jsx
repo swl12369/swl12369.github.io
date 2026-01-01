@@ -8,7 +8,6 @@ const GroupChat = ({ group, onBack }) => {
     const [newMessage, setNewMessage] = useState('');
     const [previousMessageCount, setPreviousMessageCount] = useState(group.messages?.length || 0);
 
-    // Play notification sound
     const playNotificationSound = () => {
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -43,7 +42,6 @@ const GroupChat = ({ group, onBack }) => {
             if (currentGroup) {
                 const newMessages = currentGroup.messages;
 
-                // Check for new messages and play sound
                 if (previousMessageCount > 0 && newMessages.length > previousMessageCount) {
                     const latestMsg = newMessages[newMessages.length - 1];
                     if (latestMsg.from !== user.username) {
@@ -125,53 +123,59 @@ const GroupChat = ({ group, onBack }) => {
     const isCreator = group.createdBy === user.username;
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ padding: '1rem', maxWidth: '800px', margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <button onClick={onBack} style={{ padding: '0.5rem 1rem' }}>
+                <button onClick={onBack} style={{ background: '#F6F6F6', color: '#191919' }}>
                     ← 뒤로가기
                 </button>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     {isCreator && (
                         <button
                             onClick={handleDeleteGroup}
-                            style={{
-                                backgroundColor: '#e53e3e',
-                                padding: '0.5rem 1rem'
-                            }}
+                            style={{ backgroundColor: '#e53e3e' }}
                         >
                             🗑️ 삭제
                         </button>
                     )}
                     <button
                         onClick={handleLeaveGroup}
-                        style={{
-                            backgroundColor: '#f56565',
-                            padding: '0.5rem 1rem'
-                        }}
+                        style={{ backgroundColor: '#f56565' }}
                     >
                         🚪 나가기
                     </button>
                 </div>
             </div>
 
-            <div style={{ marginBottom: '1rem', padding: '1.5rem', backgroundColor: '#f7fafc', borderRadius: '12px' }}>
-                <h2 style={{ margin: '0 0 0.5rem 0', color: '#667eea' }}>{group.name}</h2>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#718096' }}>
-                    👥 멤버: {group.members.join(', ')}
+            {/* KakaoTalk-style Header */}
+            <div style={{
+                marginBottom: '1rem',
+                padding: '1.25rem',
+                backgroundColor: '#FEE500',
+                borderRadius: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+                <h2 style={{ margin: '0 0 0.5rem 0', color: '#3C1E1E', fontWeight: '700' }}>
+                    {group.name}
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#3C1E1E', opacity: 0.8 }}>
+                    👥 {group.members.join(', ')}
                 </p>
             </div>
 
+            {/* Chat Messages Area */}
             <div style={{
-                border: '2px solid #e2e8f0',
-                borderRadius: '12px',
+                backgroundColor: '#B2C7D9',
+                borderRadius: '16px',
                 padding: '1.5rem',
-                height: '450px',
+                height: '500px',
                 overflowY: 'auto',
-                backgroundColor: '#f8f9fa',
-                marginBottom: '1rem'
+                marginBottom: '1rem',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)'
             }}>
                 {messages.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#999' }}>아직 메시지가 없습니다.</p>
+                    <p style={{ textAlign: 'center', color: '#7C7C7C', marginTop: '3rem' }}>
+                        아직 메시지가 없습니다.
+                    </p>
                 ) : (
                     messages.map((msg, index) => {
                         const isMine = msg.from === user.username;
@@ -181,19 +185,21 @@ const GroupChat = ({ group, onBack }) => {
                                 style={{
                                     display: 'flex',
                                     justifyContent: isMine ? 'flex-end' : 'flex-start',
-                                    marginBottom: '1rem'
+                                    marginBottom: '0.75rem'
                                 }}
                             >
                                 <div style={{
                                     maxWidth: '70%',
-                                    position: 'relative'
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: isMine ? 'flex-end' : 'flex-start'
                                 }}>
                                     {!isMine && (
                                         <div style={{
                                             fontSize: '0.75rem',
                                             fontWeight: 'bold',
                                             marginBottom: '0.25rem',
-                                            color: '#667eea',
+                                            color: '#3C1E1E',
                                             marginLeft: '0.5rem'
                                         }}>
                                             {msg.from}
@@ -202,23 +208,26 @@ const GroupChat = ({ group, onBack }) => {
                                     <div style={{
                                         padding: '0.875rem 1.125rem',
                                         borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                                        backgroundColor: isMine ? '#667eea' : '#ffffff',
-                                        color: isMine ? '#fff' : '#1a202c',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        position: 'relative',
-                                        wordBreak: 'break-word'
+                                        backgroundColor: isMine ? '#FEE500' : '#FFFFFF',
+                                        color: '#191919',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                        wordBreak: 'break-word',
+                                        fontSize: '0.95rem',
+                                        lineHeight: '1.5'
                                     }}>
-                                        <div style={{ marginBottom: '0.25rem' }}>{msg.content}</div>
-                                        <div style={{
-                                            fontSize: '0.7rem',
-                                            opacity: 0.7,
-                                            textAlign: 'right'
-                                        }}>
-                                            {new Date(msg.date).toLocaleTimeString('ko-KR', {
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </div>
+                                        {msg.content}
+                                    </div>
+                                    <div style={{
+                                        fontSize: '0.7rem',
+                                        color: '#7C7C7C',
+                                        marginTop: '0.25rem',
+                                        marginLeft: isMine ? 0 : '0.5rem',
+                                        marginRight: isMine ? '0.5rem' : 0
+                                    }}>
+                                        {new Date(msg.date).toLocaleTimeString('ko-KR', {
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
                                     </div>
                                 </div>
                             </div>
@@ -227,31 +236,34 @@ const GroupChat = ({ group, onBack }) => {
                 )}
             </div>
 
-            <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.5rem' }}>
+            {/* Input Area */}
+            <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.75rem' }}>
                 <input
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="메시지를 입력하세요..."
+                    placeholder="메시지를 입력하세요"
                     style={{
                         flex: 1,
-                        padding: '0.875rem 1.125rem',
-                        border: '2px solid #e2e8f0',
-                        borderRadius: '25px',
-                        fontSize: '1rem'
+                        padding: '1rem 1.25rem',
+                        border: '2px solid #E5E5EA',
+                        borderRadius: '24px',
+                        fontSize: '0.95rem',
+                        backgroundColor: '#FFFFFF'
                     }}
                 />
                 <button
                     type="submit"
                     style={{
-                        padding: '0.875rem 2rem',
-                        backgroundColor: '#667eea',
-                        color: '#fff',
+                        padding: '1rem 2rem',
+                        backgroundColor: '#FEE500',
+                        color: '#3C1E1E',
                         border: 'none',
-                        borderRadius: '25px',
+                        borderRadius: '24px',
                         cursor: 'pointer',
-                        fontSize: '1rem',
-                        fontWeight: '600'
+                        fontSize: '0.95rem',
+                        fontWeight: '700',
+                        boxShadow: '0 2px 8px rgba(254,229,0,0.3)'
                     }}
                 >
                     전송
