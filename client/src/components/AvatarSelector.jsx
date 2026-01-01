@@ -46,6 +46,7 @@ const AvatarSelector = ({ onCancel, onSave }) => {
                 if (res.ok) {
                     alert('아바타가 업로드되었습니다!');
                     if (onSave) onSave(null);
+                    window.location.reload(); // Refresh to show new avatar
                 } else {
                     alert('업로드 실패');
                 }
@@ -62,6 +63,7 @@ const AvatarSelector = ({ onCancel, onSave }) => {
                 if (res.ok) {
                     alert('아바타가 저장되었습니다!');
                     if (onSave) onSave(seed);
+                    window.location.reload(); // Refresh to show new avatar
                 } else {
                     alert('저장 실패');
                 }
