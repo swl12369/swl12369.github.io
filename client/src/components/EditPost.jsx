@@ -28,7 +28,7 @@ const EditPost = ({ post, onCancel, onUpdateSuccess }) => {
         }
 
         try {
-            const res = await fetch(`${API_URL}/api/posts/${post.id}`, {
+            const res = await fetch(`${API_URL}/api/posts/${post._id || post.id}`, {
                 method: 'PUT',
                 body: formData
             });
