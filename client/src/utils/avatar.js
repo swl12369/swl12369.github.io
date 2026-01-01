@@ -1,4 +1,4 @@
-import { API_URL } from './config';
+import { API_URL } from '../config';
 
 export const getAvatarUrl = (user) => {
     if (!user) return `https://api.dicebear.com/9.x/dylan/svg?seed=default`;
