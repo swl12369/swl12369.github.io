@@ -62,7 +62,7 @@ const AvatarSelector = ({ onCancel, onSave }) => {
                     if (onSave) onSave(null);
                     window.location.reload();
                 } else {
-                    alert('업로드 실패');
+                    alert(`업로드 실패: ${res.status} ${res.statusText}`);
                 }
             } else {
                 // Save random avatar seed

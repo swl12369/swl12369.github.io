@@ -314,7 +314,8 @@ app.post('/api/users/:username/avatar', upload.single('avatar'), async (req, res
         }
 
         // Delete old avatar file if exists
-        if (user.avatarPath) {
+        // Delete old avatar file if exists and is local
+        if (user.avatarPath && !user.avatarPath.startsWith('http')) {
             const oldPath = path.join(__dirname, user.avatarPath);
             if (fs.existsSync(oldPath)) {
                 fs.unlinkSync(oldPath);
