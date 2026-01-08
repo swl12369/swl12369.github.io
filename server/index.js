@@ -149,17 +149,31 @@ const initializeAdmin = async () => {
     }
 };
 
+// --- Cloudinary Setup ---
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// --- Multer Setup ---
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'demo',
+    api_key: process.env.CLOUDINARY_API_KEY || 'demo',
+    api_secret: process.env.CLOUDINARY_API_SECRET || 'demo'
+});
+
+// Cloudinary Storage for Multer
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'family-board',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi'],
+        resource_type: 'auto' // Automatically detect image or video
     }
 });
-const upload = multer({ storage });
+
+const upload = multer({
+    storage,
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 
 // --- ROUTES ---
@@ -304,7 +318,7 @@ app.post('/api/users/:username/avatar', upload.single('avatar'), async (req, res
         }
 
         // Save new avatar path
-        user.avatarPath = `/uploads/${req.file.filename}`;
+        user.avatarPath = req.file.path; // Cloudinary URL
         user.avatarSeed = null; // Clear seed when using custom image
         await user.save();
 
@@ -455,7 +469,7 @@ app.get('/api/posts', async (req, res) => {
 
 app.post('/api/posts', upload.single('image'), async (req, res) => {
     const { title, content, author, pollOption1, pollOption2 } = req.body;
-    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+    const imagePath = req.file ? req.file.path : null; // Cloudinary URL
 
     try {
         const postData = {
@@ -505,7 +519,7 @@ app.put('/api/posts/:id', upload.single('image'), async (req, res) => {
                 const oldPath = path.join(__dirname, post.imagePath);
                 if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
             }
-            post.imagePath = `/uploads/${req.file.filename}`;
+            post.imagePath = req.file.path; // Cloudinary URL
         }
 
         await post.save();
