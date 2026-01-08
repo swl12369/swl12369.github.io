@@ -137,31 +137,43 @@ const Profile = ({ onBack, onNavigate, onShowAvatar, isV2Unlocked }) => {
 
 
                 {/* Ladder Game (Only show if V2 is unlocked) */}
+                {/* Version 2 Features */}
                 {isV2Unlocked && (
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '1.25rem',
-                        borderTop: '1px solid #E5E5EA'
-                    }}>
-                        <div>
-                            <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>🎢 사다리 타기</div>
-                            <div style={{ fontSize: '0.85rem', color: '#7C7C7C' }}>
-                                미니게임 한 판!
+                    <>
+                        {[
+                            { id: 'ladder-game', label: '🎢 사다리 타기', desc: '미니게임 한 판!' },
+                            { id: 'rock-paper-scissors', label: '✌️ 가위 바위 보', desc: '승부를 가려라!' },
+                            { id: 'roulette', label: '🎡 행운의 룰렛', desc: '오늘의 운세는?' },
+                            { id: 'shop', label: '🛒 이모티콘 샵', desc: '포인트로 쇼핑하기' },
+                            { id: 'calendar', label: '📅 우리 가족 일정', desc: '생일, 모임 공유' },
+                            { id: 'todo', label: '✅ 같이 할 일', desc: '장보기, 청소 등' },
+                        ].map(item => (
+                            <div key={item.id} style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '1.25rem',
+                                borderTop: '1px solid #E5E5EA'
+                            }}>
+                                <div>
+                                    <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{item.label}</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#7C7C7C' }}>
+                                        {item.desc}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => onNavigate(item.id)}
+                                    style={{
+                                        backgroundColor: '#FEE500',
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.9rem'
+                                    }}
+                                >
+                                    GO
+                                </button>
                             </div>
-                        </div>
-                        <button
-                            onClick={() => onNavigate('ladder-game')}
-                            style={{
-                                backgroundColor: '#FEE500',
-                                padding: '0.5rem 1rem',
-                                fontSize: '0.9rem'
-                            }}
-                        >
-                            GO
-                        </button>
-                    </div>
+                        ))}
+                    </>
                 )}
             </div>
 

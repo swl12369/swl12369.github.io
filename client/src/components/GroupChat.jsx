@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
 
-const GroupChat = ({ group, onBack }) => {
+const GroupChat = ({ group, onBack, isV2Unlocked }) => {
     const { user } = useAuth();
     const [messages, setMessages] = useState(group.messages || []);
     const [newMessage, setNewMessage] = useState('');
     const [previousMessageCount, setPreviousMessageCount] = useState(group.messages?.length || 0);
+    const [isSecret, setIsSecret] = useState(false); // V2 Feature
+    const [replyTo, setReplyTo] = useState(null);    // V2 Feature
+    const [revealedSecrets, setRevealedSecrets] = useState({}); // Track verified secrets
 
     const playNotificationSound = () => {
         try {
@@ -61,16 +64,30 @@ const GroupChat = ({ group, onBack }) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
 
+        let contentToSend = newMessage;
+
+        // V2 Features Logic
+        if (isV2Unlocked) {
+            if (replyTo) {
+                contentToSend = ` ➤ @${replyTo.from} ${contentToSend}`;
+            }
+            if (isSecret) {
+                contentToSend = `[SECRET] ${contentToSend}`;
+            }
+        }
+
         try {
             await fetch(`${API_URL}/api/groupchats/${group._id || group.id}/messages`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     from: user.username,
-                    content: newMessage
+                    content: contentToSend
                 })
             });
             setNewMessage('');
+            setReplyTo(null);
+            setIsSecret(false);
             fetchMessages();
         } catch (err) {
             alert('메시지 전송에 실패했습니다.');
@@ -120,6 +137,18 @@ const GroupChat = ({ group, onBack }) => {
         }
     };
 
+    const toggleSecretReveal = (index) => {
+        if (!isV2Unlocked) return;
+        setRevealedSecrets(prev => ({ ...prev, [index]: !prev[index] }));
+
+        // Auto-hide after 5 seconds
+        if (!revealedSecrets[index]) {
+            setTimeout(() => {
+                setRevealedSecrets(prev => ({ ...prev, [index]: false }));
+            }, 5000);
+        }
+    };
+
     const isCreator = group.createdBy === user.username;
 
     return (
@@ -146,7 +175,7 @@ const GroupChat = ({ group, onBack }) => {
                 </div>
             </div>
 
-            {/* KakaoTalk-style Header */}
+            {/* Header */}
             <div style={{
                 marginBottom: '1rem',
                 padding: '1.25rem',
@@ -179,6 +208,12 @@ const GroupChat = ({ group, onBack }) => {
                 ) : (
                     messages.map((msg, index) => {
                         const isMine = msg.from === user.username;
+                        const isSecretMsg = msg.content.startsWith('[SECRET]');
+                        const actualContent = isSecretMsg ? msg.content.replace('[SECRET]', '').trim() : msg.content;
+
+                        // Parse Reply (simple check)
+                        const isReply = actualContent.includes('➤ @');
+
                         return (
                             <div
                                 key={index}
@@ -200,22 +235,43 @@ const GroupChat = ({ group, onBack }) => {
                                             fontWeight: 'bold',
                                             marginBottom: '0.25rem',
                                             color: '#3C1E1E',
-                                            marginLeft: '0.5rem'
-                                        }}>
+                                            marginLeft: '0.5rem',
+                                            cursor: 'pointer' // Enable click to reply
+                                        }}
+                                            onClick={() => isV2Unlocked && setReplyTo(msg)}
+                                            title={isV2Unlocked ? "클릭하여 답장" : ""}
+                                        >
                                             {msg.from}
                                         </div>
                                     )}
-                                    <div style={{
-                                        padding: '0.875rem 1.125rem',
-                                        borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                                        backgroundColor: isMine ? '#FEE500' : '#FFFFFF',
-                                        color: '#191919',
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                        wordBreak: 'break-word',
-                                        fontSize: '0.95rem',
-                                        lineHeight: '1.5'
-                                    }}>
-                                        {msg.content}
+                                    <div
+                                        onClick={() => {
+                                            if (isSecretMsg) toggleSecretReveal(index);
+                                            else if (isV2Unlocked && !isMine) setReplyTo(msg);
+                                        }}
+                                        style={{
+                                            padding: '0.875rem 1.125rem',
+                                            borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                                            backgroundColor: isSecretMsg && !revealedSecrets[index] ? '#333' : (isMine ? '#FEE500' : '#FFFFFF'),
+                                            color: isSecretMsg && !revealedSecrets[index] ? '#fff' : '#191919',
+                                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                            wordBreak: 'break-word',
+                                            fontSize: '0.95rem',
+                                            lineHeight: '1.5',
+                                            cursor: (isSecretMsg || (isV2Unlocked && !isMine)) ? 'pointer' : 'default',
+                                            position: 'relative'
+                                        }}
+                                    >
+                                        {isSecretMsg && !revealedSecrets[index] ? (
+                                            <span>🔒 비밀 메시지 (클릭)</span>
+                                        ) : (
+                                            actualContent
+                                        )}
+                                        {isSecretMsg && revealedSecrets[index] && (
+                                            <span style={{ display: 'block', fontSize: '0.7rem', color: 'red', marginTop: '0.2rem' }}>
+                                                5초 후 사라집니다
+                                            </span>
+                                        )}
                                     </div>
                                     <div style={{
                                         fontSize: '0.7rem',
@@ -236,34 +292,69 @@ const GroupChat = ({ group, onBack }) => {
                 )}
             </div>
 
+            {/* Reply Indicator */}
+            {replyTo && (
+                <div style={{
+                    padding: '0.5rem 1rem',
+                    background: '#f0f0f0',
+                    borderRadius: '8px',
+                    marginBottom: '0.5rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '0.9rem'
+                }}>
+                    <span>↩️ <b>{replyTo.from}</b>님에게 답장 중...</span>
+                    <button onClick={() => setReplyTo(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
+                </div>
+            )}
+
             {/* Input Area */}
-            <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.75rem' }}>
+            <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                {isV2Unlocked && (
+                    <button
+                        type="button"
+                        onClick={() => setIsSecret(!isSecret)}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            fontSize: '1.5rem',
+                            cursor: 'pointer',
+                            opacity: isSecret ? 1 : 0.4,
+                            transition: 'opacity 0.2s'
+                        }}
+                        title="비밀 메시지 (5초 후 삭제)"
+                    >
+                        🔒
+                    </button>
+                )}
+
                 <input
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="메시지를 입력하세요"
+                    placeholder={isSecret ? "🔒 비밀 메시지를 입력하세요" : "메시지를 입력하세요"}
                     style={{
                         flex: 1,
                         padding: '1rem 1.25rem',
-                        border: '2px solid #E5E5EA',
+                        border: isSecret ? '2px solid #333' : '2px solid #E5E5EA',
                         borderRadius: '24px',
                         fontSize: '0.95rem',
-                        backgroundColor: '#FFFFFF'
+                        backgroundColor: isSecret ? '#f0f0f0' : '#FFFFFF'
                     }}
                 />
                 <button
                     type="submit"
                     style={{
                         padding: '1rem 2rem',
-                        backgroundColor: '#FEE500',
-                        color: '#3C1E1E',
+                        backgroundColor: isSecret ? '#333' : '#FEE500',
+                        color: isSecret ? '#fff' : '#3C1E1E',
                         border: 'none',
                         borderRadius: '24px',
                         cursor: 'pointer',
                         fontSize: '0.95rem',
                         fontWeight: '700',
-                        boxShadow: '0 2px 8px rgba(254,229,0,0.3)'
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                     }}
                 >
                     전송

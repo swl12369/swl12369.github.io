@@ -15,6 +15,12 @@ import GroupChatList from './components/GroupChatList';
 import Profile from './components/Profile';
 import UpdateChecker from './components/UpdateChecker';
 import LadderGame from './components/LadderGame';
+import Gallery from './components/Gallery';
+import RockPaperScissors from './components/RockPaperScissors';
+import Roulette from './components/Roulette';
+import Shop from './components/Shop';
+import Calendar from './components/Calendar';
+import TodoList from './components/TodoList';
 import BottomNav from './components/BottomNav';
 import { useAuth } from './context/AuthContext';
 import AvatarSelector from './components/AvatarSelector';
@@ -141,6 +147,18 @@ function App() {
       case 'more':
         setView('profile');
         break;
+      case 'more':
+        setView('profile');
+        break;
+      case 'gallery':
+        setView('gallery');
+        break;
+      case 'ladder-game': setView('ladder-game'); break;
+      case 'rock-paper-scissors': setView('rock-paper-scissors'); break;
+      case 'roulette': setView('roulette'); break;
+      case 'shop': setView('shop'); break;
+      case 'calendar': setView('calendar'); break;
+      case 'todo': setView('todo'); break;
       default:
         setView('home');
     }
@@ -218,7 +236,7 @@ function App() {
             onBack={() => setView('home')}
           />
         ) : view === 'groupchat' ? (
-          <GroupChat group={selectedGroup} onBack={() => setView('groupchatlist')} />
+          <GroupChat group={selectedGroup} onBack={() => setView('groupchatlist')} isV2Unlocked={isV2Unlocked} />
         ) : view === 'admin' && user.username === 'xManager' ? (
           <AdminDashboard />
         ) : view === 'delete-account' ? (
@@ -234,6 +252,18 @@ function App() {
           />
         ) : view === 'ladder-game' ? (
           <LadderGame onBack={() => setView('profile')} />
+        ) : view === 'gallery' ? (
+          <Gallery onBack={() => setView('home')} />
+        ) : view === 'rock-paper-scissors' ? (
+          <RockPaperScissors onBack={() => setView('profile')} />
+        ) : view === 'roulette' ? (
+          <Roulette onBack={() => setView('profile')} />
+        ) : view === 'shop' ? (
+          <Shop onBack={() => setView('profile')} />
+        ) : view === 'calendar' ? (
+          <Calendar onBack={() => setView('profile')} />
+        ) : view === 'todo' ? (
+          <TodoList onBack={() => setView('profile')} />
         ) : view === 'update' ? (
           <UpdateChecker
             onBack={() => setView('home')}
@@ -257,7 +287,7 @@ function App() {
 
       {/* Bottom Navigation */}
       {isLoggedIn && (
-        <BottomNav currentView={view} onNavigate={handleNavigate} />
+        <BottomNav currentView={view} onNavigate={handleNavigate} isV2Unlocked={isV2Unlocked} />
       )}
     </div>
   );

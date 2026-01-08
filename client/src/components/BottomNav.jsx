@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const BottomNav = ({ currentView, onNavigate }) => {
+const BottomNav = ({ currentView, onNavigate, isV2Unlocked }) => {
     const { user } = useAuth();
     const isAdmin = user?.username === 'xManager';
 
@@ -14,6 +14,10 @@ const BottomNav = ({ currentView, onNavigate }) => {
         { id: 'posts', icon: '📄', label: '글쓰기' },
         { id: 'autoUpdate', icon: '🔄', label: '업데이트' }, // Moved here
     ];
+
+    if (isV2Unlocked) {
+        navItems.push({ id: 'gallery', icon: '📷', label: '갤러리' });
+    }
 
     if (isAdmin) {
         navItems.push(
