@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
+import { API_URL } from '../config';
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -47,8 +49,32 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(userData));
     };
 
+    const checkAttendance = async (username) => {
+        try {
+            const res = await fetch(`${API_URL}/api/user/attendance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+            const data = await res.json();
+            if (data.success) {
+                // Update local user points
+                setUser(prev => {
+                    const updated = { ...prev, points: data.points };
+                    localStorage.setItem('user', JSON.stringify(updated));
+                    return updated;
+                });
+                return data;
+            }
+            return null;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, isLoggedIn, login, logout, register, updateUser }}>
+        <AuthContext.Provider value={{ user, isLoggedIn, login, logout, register, updateUser, checkAttendance }}>
             {children}
         </AuthContext.Provider>
     );

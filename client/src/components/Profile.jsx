@@ -42,7 +42,7 @@ const Profile = ({ onBack }) => {
                         {user?.username}
                     </h2>
                     <p style={{ margin: '0.25rem 0 0 0', color: '#3C1E1E', opacity: 0.8, fontSize: '0.9rem' }}>
-                        프로필 설정
+                        포인트: <span style={{ fontWeight: 'bold', color: '#E03E3E' }}>{user?.points || 0} P</span>
                     </p>
                 </div>
             </div>

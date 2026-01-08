@@ -27,8 +27,22 @@ function App() {
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const { isLoggedIn, user, logout } = useAuth();
+  const { isLoggedIn, user, logout, checkAttendance } = useAuth();
+  const [attendanceChecked, setAttendanceChecked] = useState(false); // To prevent multiple alerts
+
+  // Auto Attendance Check
+  useEffect(() => {
+    if (isLoggedIn && user && !attendanceChecked) {
+      const doCheck = async () => {
+        const result = await checkAttendance(user.username);
+        if (result && result.success) {
+          alert(`📅 ${result.message}\n현재 포인트: ${result.points}P (연속 ${result.streak}일)`);
+        }
+        setAttendanceChecked(true); // Mark as checked for this session
+      };
+      doCheck();
+    }
+  }, [isLoggedIn, user, attendanceChecked, checkAttendance]);
 
   // Check for unread messages every 5 seconds
   useEffect(() => {

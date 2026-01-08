@@ -51,7 +51,11 @@ const userSchema = new mongoose.Schema({
     avatarSeed: { type: String }, // For customizable avatars
     avatarPath: { type: String }, // For uploaded avatar images
     isApproved: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    points: { type: Number, default: 0 },
+    lastLogin: { type: Date },
+    lastAttendance: { type: Date },
+    attendanceStreak: { type: Number, default: 0 }
 });
 
 const postSchema = new mongoose.Schema({
@@ -429,6 +433,58 @@ app.put('/api/user/avatar', async (req, res) => {
         res.json({ message: '아바타가 변경되었습니다.', avatarSeed: user.avatarSeed });
     } catch (err) {
         res.status(500).json({ error: '오류가 발생했습니다.' });
+    }
+});
+
+// Attendance Check
+app.post('/api/user/attendance', async (req, res) => {
+    const { username } = req.body;
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const lastAttendance = user.lastAttendance ? new Date(user.lastAttendance) : null;
+        if (lastAttendance) lastAttendance.setHours(0, 0, 0, 0);
+
+        // Check if already attended today
+        if (lastAttendance && lastAttendance.getTime() === today.getTime()) {
+            return res.status(400).json({ message: '이미 오늘은 출석했습니다.', points: user.points });
+        }
+
+        // Check streak (consecutive days)
+        let newStreak = 1;
+        if (lastAttendance) {
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (lastAttendance.getTime() === yesterday.getTime()) {
+                newStreak = (user.attendanceStreak || 0) + 1;
+            }
+        }
+
+        // Calculate points (Base 100 + Streak bonus)
+        const basePoints = 100;
+        const streakBonus = Math.min(newStreak, 7) * 10; // Max 70 bonus
+        const addedPoints = basePoints + streakBonus;
+
+        user.points = (user.points || 0) + addedPoints;
+        user.lastAttendance = new Date();
+        user.attendanceStreak = newStreak;
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: `출석체크 완료! +${addedPoints}P`,
+            points: user.points,
+            streak: newStreak,
+            addedPoints
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server Error' });
     }
 });
 
