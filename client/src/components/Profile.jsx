@@ -130,53 +130,53 @@ const Profile = ({ onBack, onNavigate, onShowAvatar }) => {
                         보기
                     </button>
                 </div>
-            </div>
 
-            {/* Ladder Game */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '1.25rem',
-                borderTop: '1px solid #E5E5EA'
-            }}>
-                <div>
-                    <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>🎢 사다리 타기</div>
-                    <div style={{ fontSize: '0.85rem', color: '#7C7C7C' }}>
-                        미니게임 한 판!
+
+                {/* Ladder Game */}
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '1.25rem',
+                    borderTop: '1px solid #E5E5EA'
+                }}>
+                    <div>
+                        <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>🎢 사다리 타기</div>
+                        <div style={{ fontSize: '0.85rem', color: '#7C7C7C' }}>
+                            미니게임 한 판!
+                        </div>
                     </div>
+                    <button
+                        onClick={() => onNavigate('ladder-game')}
+                        style={{
+                            backgroundColor: '#FEE500',
+                            padding: '0.5rem 1rem',
+                            fontSize: '0.9rem'
+                        }}
+                    >
+                        GO
+                    </button>
                 </div>
-                <button
-                    onClick={() => onNavigate('ladder-game')}
-                    style={{
-                        backgroundColor: '#FEE500',
-                        padding: '0.5rem 1rem',
-                        fontSize: '0.9rem'
-                    }}
-                >
-                    GO
-                </button>
             </div>
-        </div>
 
-            {/* Logout */ }
-    <button
-        onClick={() => {
-            localStorage.removeItem('user');
-            window.location.reload();
-        }}
-        style={{
-            width: '100%',
-            marginTop: '1.5rem',
-            backgroundColor: '#FF4444',
-            color: 'white',
-            padding: '1rem',
-            fontSize: '1rem',
-            fontWeight: '600'
-        }}
-    >
-        로그아웃
-    </button>
+            {/* Logout */}
+            <button
+                onClick={() => {
+                    localStorage.removeItem('user');
+                    window.location.reload();
+                }}
+                style={{
+                    width: '100%',
+                    marginTop: '1.5rem',
+                    backgroundColor: '#FF4444',
+                    color: 'white',
+                    padding: '1rem',
+                    fontSize: '1rem',
+                    fontWeight: '600'
+                }}
+            >
+                로그아웃
+            </button>
         </div >
     );
 };
