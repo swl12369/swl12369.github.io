@@ -100,10 +100,10 @@ function App() {
       case 'chatList': // New: View Chat List
         setView('groupchatlist');
         break;
-      // case 'search':
-      //   // TODO: Implement search
-      //   alert('검색 기능 준비 중입니다!');
-      //   break;
+      case 'search':
+        // TODO: Implement search
+        alert('검색 기능 준비 중입니다!');
+        break;
       case 'vote': // Changed from createPost
         handleCreatePollClick();
         break;
