@@ -152,12 +152,27 @@ const GroupChat = ({ group, onBack, isV2Unlocked }) => {
     const [showEmoticons, setShowEmoticons] = useState(false); // Emoticon Picker Toggle
 
     // Emoticons Data
-    const basicEmojis = ['😀', '😂', '😍', '😭', '😡', '👍', '👎', '❤️', '🎉', '🔥'];
+    const basicEmojis = [
+        '😀', '😂', '😍', '😭', '😡', '👍', '👎', '❤️', '🎉', '🔥',
+        '🤔', '😅', '🤮', '🤢', '🤧', '🤐', '👻', '💀', '👽', '🤖',
+        '👋', '🙌', '👏', '🙏', '💪', '🦵', '🦶', '👂', '👃', '👀',
+        '🍕', '🍔', '🍟', '🌭', '🍿', '🧂', '🥓', '🥚', '🍳', '🧇',
+        '🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐',
+        '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯'
+    ];
     const stickers = [
         { id: 'emo1', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Happy' },
         { id: 'emo2', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Cute' },
         { id: 'emo3', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Love' },
         { id: 'emo4', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Angry' },
+        { id: 'emo5', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Crying' },
+        { id: 'emo6', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Wink' },
+        { id: 'emo7', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Surprised' },
+        { id: 'emo8', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Sick' },
+        { id: 'emo9', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Cool' },
+        { id: 'emo10', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Felix' },
+        { id: 'emo11', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Aneka' },
+        { id: 'emo12', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Robot' },
     ];
 
     const sendSticker = async (stickerId) => {
