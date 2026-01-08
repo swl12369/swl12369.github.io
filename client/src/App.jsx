@@ -15,6 +15,7 @@ import GroupChatList from './components/GroupChatList';
 import Profile from './components/Profile';
 import UpdateChecker from './components/UpdateChecker';
 import BottomNav from './components/BottomNav';
+import LadderGame from './components/LadderGame';
 import { useAuth } from './context/AuthContext';
 import AvatarSelector from './components/AvatarSelector';
 import { API_URL } from './config';
@@ -215,8 +216,16 @@ function App() {
           <AdminDashboard />
         ) : view === 'delete-account' ? (
           <DeleteAccount onBack={() => setView('home')} onSuccess={() => setView('home')} />
+        ) : view === 'reset-password' ? (
+          <ResetPassword onBack={() => setView('profile')} onSuccess={() => setView('home')} />
         ) : view === 'profile' ? (
-          <Profile onBack={() => setView('home')} />
+          <Profile
+            onBack={() => setView('home')}
+            onNavigate={setView}
+            onShowAvatar={() => setShowAvatarSelector(true)}
+          />
+        ) : view === 'ladder-game' ? (
+          <LadderGame onBack={() => setView('profile')} />
         ) : view === 'update' ? (
           <UpdateChecker onBack={() => setView('home')} />
         ) : (
