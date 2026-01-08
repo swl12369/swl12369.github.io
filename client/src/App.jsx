@@ -12,6 +12,9 @@ import UserList from './components/UserList';
 import Messages from './components/Messages';
 import GroupChat from './components/GroupChat';
 import GroupChatList from './components/GroupChatList';
+import Profile from './components/Profile';
+import UpdateChecker from './components/UpdateChecker';
+import BottomNav from './components/BottomNav';
 import { useAuth } from './context/AuthContext';
 import AvatarSelector from './components/AvatarSelector';
 import { API_URL } from './config';
@@ -78,6 +81,43 @@ function App() {
   const handleCreatePollClick = () => {
     setCreatePostProps({ isPollMode: true });
     setView('create');
+  };
+
+  const handleEditClick = (post) => {
+    setCreatePostProps({ post, isEditing: true });
+    setView('create');
+  };
+
+  const handleNavigate = (navId) => {
+    switch (navId) {
+      case 'users':
+        setView('users');
+        break;
+      case 'createChat':
+        setView('groupchatlist');
+        break;
+      case 'search':
+        // TODO: Implement search
+        alert('검색 기능 준비 중입니다!');
+        break;
+      case 'createPost':
+        handleCreateClick();
+        break;
+      case 'posts':
+        setView('home');
+        break;
+      case 'autoUpdate':
+        setView('update');
+        break;
+      case 'admin':
+        setView('admin');
+        break;
+      case 'more':
+        setView('profile');
+        break;
+      default:
+        setView('home');
+    }
   };
 
   const handleLogout = () => {
@@ -231,6 +271,10 @@ function App() {
           <AdminDashboard />
         ) : view === 'delete-account' ? (
           <DeleteAccount onBack={() => setView('home')} onSuccess={() => setView('home')} />
+        ) : view === 'profile' ? (
+          <Profile onBack={() => setView('home')} />
+        ) : view === 'update' ? (
+          <UpdateChecker onBack={() => setView('home')} />
         ) : (
           <PostList onPostClick={handlePostClick} /> // Fallback
         )}
@@ -244,6 +288,11 @@ function App() {
             window.location.reload();
           }}
         />
+      )}
+
+      {/* Bottom Navigation */}
+      {isLoggedIn && (
+        <BottomNav currentView={view} onNavigate={handleNavigate} />
       )}
     </div>
   );
