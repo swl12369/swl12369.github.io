@@ -575,7 +575,8 @@ app.put('/api/posts/:id', upload.single('image'), async (req, res) => {
 
         if (req.file) {
             // Delete old image
-            if (post.imagePath) {
+            // Delete old image only if it's a local file
+            if (post.imagePath && !post.imagePath.startsWith('http')) {
                 const oldPath = path.join(__dirname, post.imagePath);
                 if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
             }
@@ -699,7 +700,7 @@ app.delete('/api/posts/:id', async (req, res) => {
             return res.status(403).json({ error: '본인의 게시물만 삭제할 수 있습니다.' });
         }
 
-        if (post.imagePath) {
+        if (post.imagePath && !post.imagePath.startsWith('http')) {
             const fullPath = path.join(__dirname, post.imagePath);
             if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
         }
