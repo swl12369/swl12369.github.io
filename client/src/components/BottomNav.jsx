@@ -9,7 +9,7 @@ const BottomNav = ({ currentView, onNavigate }) => {
         { id: 'users', icon: '👤', label: '회원보기' },
         { id: 'createChat', icon: '➕', label: '채팅방' },
         { id: 'chatList', icon: '💬', label: '대화보기' },
-        { id: 'search', icon: '🔍', label: '검색' },
+        // { id: 'search', icon: '🔍', label: '검색' }, // Removed
         { id: 'vote', icon: '🗳️', label: '투표하기' }, // Changed from createPost
         { id: 'posts', icon: '📄', label: '글쓰기' },
         { id: 'autoUpdate', icon: '🔄', label: '업데이트' }, // Moved here
