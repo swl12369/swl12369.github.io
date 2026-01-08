@@ -22,21 +22,60 @@ import Shop from './components/Shop';
 import Calendar from './components/Calendar';
 import TodoList from './components/TodoList';
 import BottomNav from './components/BottomNav';
+import TopNav from './components/TopNav'; // Import TopNav
 import { useAuth } from './context/AuthContext';
 import AvatarSelector from './components/AvatarSelector';
 import { API_URL } from './config';
 import { getAvatarUrl } from './utils/avatar';
 
 function App() {
-  const [view, setView] = useState('home'); // 'home', 'create', 'detail', 'login', 'register', 'find-username', 'reset-password', 'delete-account', 'admin', 'users', 'messages', 'groupchat', 'groupchatlist'
+  const [view, setView] = useState('home');
+  // Custom History Stack
+  const [history, setHistory] = useState(['home']);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   const [selectedPost, setSelectedPost] = useState(null);
   const [createPostProps, setCreatePostProps] = useState({});
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const { isLoggedIn, user, logout, checkAttendance } = useAuth();
-  const [attendanceChecked, setAttendanceChecked] = useState(false); // To prevent multiple alerts
+  const [attendanceChecked, setAttendanceChecked] = useState(false);
   const [isV2Unlocked, setIsV2Unlocked] = useState(localStorage.getItem('isV2Unlocked') === 'true');
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Navigation Helper with History
+  const navigate = (newView) => {
+    if (newView === view) return;
+
+    // Discard future history if we navigate to a new page
+    const newHistory = history.slice(0, currentIndex + 1);
+    newHistory.push(newView);
+    setHistory(newHistory);
+    setCurrentIndex(newHistory.length - 1);
+    setView(newView);
+  };
+
+  const goBack = () => {
+    if (currentIndex > 0) {
+      const newIndex = currentIndex - 1;
+      setCurrentIndex(newIndex);
+      setView(history[newIndex]);
+    }
+  };
+
+  const goForward = () => {
+    if (currentIndex < history.length - 1) {
+      const newIndex = currentIndex + 1;
+      setCurrentIndex(newIndex);
+      setView(history[newIndex]);
+    }
+  };
+
+  const goHome = () => {
+    // If Home is already in history, we could jump back, but simpler to just push new home
+    navigate('home');
+  };
 
   const enableV2 = () => {
     setIsV2Unlocked(true);
@@ -52,7 +91,7 @@ function App() {
         if (result && result.success) {
           alert(`📅 ${result.message}\n현재 포인트: ${result.points}P (연속 ${result.streak}일)`);
         }
-        setAttendanceChecked(true); // Mark as checked for this session
+        setAttendanceChecked(true);
       };
       doCheck();
     }
@@ -79,93 +118,92 @@ function App() {
   }, [isLoggedIn, user]);
 
   const handlePostCreated = () => {
-    setView('home');
+    navigate('home');
     setCreatePostProps({});
   };
 
   const handlePostClick = (post) => {
     setSelectedPost(post);
-    setView('detail');
+    navigate('detail');
   };
 
   const handleBackToList = () => {
     setSelectedPost(null);
-    setView('home');
+    navigate('home');
   };
 
   const handleLoginSuccess = () => {
+    setHistory(['home']); // Reset history on login
+    setCurrentIndex(0);
     setView('home');
   };
 
   const handleRegisterSuccess = () => {
-    setView('home');
+    navigate('home');
   };
 
   const handleCreateClick = () => {
-    setCreatePostProps({}); // Reset props
-    setView('create');
+    setCreatePostProps({});
+    navigate('create');
   };
 
   const handleCreatePollClick = () => {
     setCreatePostProps({ isPollMode: true });
-    setView('create');
+    navigate('create');
   };
 
   const handleEditClick = (post) => {
     setCreatePostProps({ post, isEditing: true });
-    setView('create');
+    navigate('create');
   };
 
-  const handleNavigate = (navId) => {
+  const handleBottomNavNavigate = (navId) => {
     switch (navId) {
       case 'users':
-        setView('users');
+        navigate('users');
         break;
       case 'createChat':
-        // Show user list to select members for new chat
-        setView('users');
+        navigate('users'); // Reuse users view for chat creation selection
         break;
-      case 'chatList': // New: View Chat List
-        setView('groupchatlist');
+      case 'chatList':
+        navigate('groupchatlist');
         break;
       case 'search':
-        // TODO: Implement search
         alert('검색 기능 준비 중입니다!');
         break;
-      case 'vote': // Changed from createPost
+      case 'vote':
         handleCreatePollClick();
         break;
-      case 'posts': // Write Post (Text/Image/Video)
+      case 'posts':
         handleCreateClick();
         break;
       case 'autoUpdate':
-        setView('update');
+        navigate('update');
         break;
       case 'admin':
-        setView('admin');
+        navigate('admin');
         break;
       case 'more':
-        setView('profile');
-        break;
-      case 'more':
-        setView('profile');
+        navigate('profile');
         break;
       case 'gallery':
-        setView('gallery');
+        navigate('gallery');
         break;
-      case 'ladder-game': setView('ladder-game'); break;
-      case 'rock-paper-scissors': setView('rock-paper-scissors'); break;
-      case 'roulette': setView('roulette'); break;
-      case 'shop': setView('shop'); break;
-      case 'calendar': setView('calendar'); break;
-      case 'todo': setView('todo'); break;
+      case 'ladder-game': navigate('ladder-game'); break;
+      case 'rock-paper-scissors': navigate('rock-paper-scissors'); break;
+      case 'roulette': navigate('roulette'); break;
+      case 'shop': navigate('shop'); break;
+      case 'calendar': navigate('calendar'); break;
+      case 'todo': navigate('todo'); break;
       default:
-        setView('home');
+        navigate('home');
     }
   };
 
   const handleLogout = () => {
     logout();
+    setHistory(['home']); // Reset history
+    setCurrentIndex(0);
     setView('home');
   };
 
@@ -175,7 +213,6 @@ function App() {
     if (view === 'find-username') return <FindUsername onBack={() => setView('login')} />;
     if (view === 'reset-password') return <ResetPassword onBack={() => setView('login')} onSuccess={() => setView('login')} />;
 
-    // Default to Login view if not in specific auth view
     return <Login
       onSuccess={handleLoginSuccess}
       onFindUsername={() => setView('find-username')}
@@ -199,7 +236,14 @@ function App() {
   // 3. Approved User / Admin Access
   return (
     <div className="container">
-
+      {/* Top Navigation for History Control */}
+      <TopNav
+        onBack={goBack}
+        onForward={goForward}
+        onHome={goHome}
+        canGoBack={currentIndex > 0}
+        canGoForward={currentIndex < history.length - 1}
+      />
 
       <main>
         {view === 'home' ? (
@@ -209,7 +253,7 @@ function App() {
             post={selectedPost}
             onBack={handleBackToList}
             onPostUpdated={(updatedPost) => {
-              setSelectedPost(updatedPost); // Update current view
+              setSelectedPost(updatedPost);
             }}
           />
         ) : view === 'create' ? (
@@ -218,60 +262,61 @@ function App() {
           <UserList
             onSelectUser={(user) => {
               setSelectedUser(user);
-              setView('messages');
+              navigate('messages');
             }}
             onSelectGroup={(group) => {
               setSelectedGroup(group);
-              setView('groupchat');
+              navigate('groupchat');
             }}
           />
         ) : view === 'messages' ? (
-          <Messages selectedUser={selectedUser} onBack={() => setView('users')} />
+          <Messages selectedUser={selectedUser} onBack={() => navigate('users')} />
         ) : view === 'groupchatlist' ? (
           <GroupChatList
             onSelectGroup={(group) => {
               setSelectedGroup(group);
-              setView('groupchat');
+              navigate('groupchat');
             }}
-            onBack={() => setView('home')}
+            onBack={() => navigate('home')}
           />
         ) : view === 'groupchat' ? (
-          <GroupChat group={selectedGroup} onBack={() => setView('groupchatlist')} isV2Unlocked={isV2Unlocked} />
+          <GroupChat group={selectedGroup} onBack={() => navigate('groupchatlist')} isV2Unlocked={isV2Unlocked} />
         ) : view === 'admin' && user.username === 'xManager' ? (
+          // Admin Dashboard might need its own back/nav, but for now it's a view
           <AdminDashboard />
         ) : view === 'delete-account' ? (
-          <DeleteAccount onBack={() => setView('home')} onSuccess={() => setView('home')} />
+          <DeleteAccount onBack={() => navigate('home')} onSuccess={() => navigate('home')} />
         ) : view === 'reset-password' ? (
-          <ResetPassword onBack={() => setView('profile')} onSuccess={() => setView('home')} />
+          <ResetPassword onBack={() => navigate('profile')} onSuccess={() => navigate('home')} />
         ) : view === 'profile' ? (
           <Profile
-            onBack={() => setView('home')}
-            onNavigate={setView}
+            onBack={() => navigate('home')}
+            onNavigate={navigate} // Pass navigate instead of setView
             onShowAvatar={() => setShowAvatarSelector(true)}
             isV2Unlocked={isV2Unlocked}
           />
         ) : view === 'ladder-game' ? (
-          <LadderGame onBack={() => setView('profile')} />
+          <LadderGame onBack={() => navigate('profile')} />
         ) : view === 'gallery' ? (
-          <Gallery onBack={() => setView('home')} />
+          <Gallery onBack={() => navigate('home')} />
         ) : view === 'rock-paper-scissors' ? (
-          <RockPaperScissors onBack={() => setView('profile')} />
+          <RockPaperScissors onBack={() => navigate('profile')} />
         ) : view === 'roulette' ? (
-          <Roulette onBack={() => setView('profile')} />
+          <Roulette onBack={() => navigate('profile')} />
         ) : view === 'shop' ? (
-          <Shop onBack={() => setView('profile')} />
+          <Shop onBack={() => navigate('profile')} />
         ) : view === 'calendar' ? (
-          <Calendar onBack={() => setView('profile')} />
+          <Calendar onBack={() => navigate('profile')} />
         ) : view === 'todo' ? (
-          <TodoList onBack={() => setView('profile')} />
+          <TodoList onBack={() => navigate('profile')} />
         ) : view === 'update' ? (
           <UpdateChecker
-            onBack={() => setView('home')}
+            onBack={() => navigate('home')}
             onUpdateV2={enableV2}
             isV2Unlocked={isV2Unlocked}
           />
         ) : (
-          <PostList onPostClick={handlePostClick} /> // Fallback
+          <PostList onPostClick={handlePostClick} />
         )}
       </main>
 
@@ -287,7 +332,7 @@ function App() {
 
       {/* Bottom Navigation */}
       {isLoggedIn && (
-        <BottomNav currentView={view} onNavigate={handleNavigate} isV2Unlocked={isV2Unlocked} />
+        <BottomNav currentView={view} onNavigate={handleBottomNavNavigate} isV2Unlocked={isV2Unlocked} />
       )}
     </div>
   );
