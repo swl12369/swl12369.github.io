@@ -149,10 +149,109 @@ const GroupChat = ({ group, onBack, isV2Unlocked }) => {
         }
     };
 
+    const [showEmoticons, setShowEmoticons] = useState(false); // Emoticon Picker Toggle
+
+    // Emoticons Data
+    const basicEmojis = ['😀', '😂', '😍', '😭', '😡', '👍', '👎', '❤️', '🎉', '🔥'];
+    const stickers = [
+        { id: 'emo1', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Happy' },
+        { id: 'emo2', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Cute' },
+        { id: 'emo3', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Love' },
+        { id: 'emo4', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Angry' },
+    ];
+
+    const sendSticker = async (stickerId) => {
+        // Send sticker as a special text format
+        const contentToSend = `[STICKER:${stickerId}]`;
+        try {
+            await fetch(`${API_URL}/api/groupchats/${group._id || group.id}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    from: user.username,
+                    content: contentToSend
+                })
+            });
+            setShowEmoticons(false);
+            fetchMessages();
+        } catch (err) {
+            alert('이모티콘 전송 실패');
+        }
+    };
+
+    const addEmoji = (emoji) => {
+        setNewMessage(prev => prev + emoji);
+    };
+
+
     const isCreator = group.createdBy === user.username;
 
+    // Helper to render message content (Text vs Sticker)
+    const renderContent = (content) => {
+        if (content.startsWith('[STICKER:') && content.endsWith(']')) {
+            const stickerId = content.substring(9, content.length - 1);
+            const sticker = stickers.find(s => s.id === stickerId);
+            if (sticker) {
+                return <img src={sticker.url} alt="sticker" style={{ width: '100px', height: '100px' }} />;
+            }
+        }
+        return content;
+    };
+
     return (
-        <div style={{ padding: '1rem', maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ padding: '1rem', maxWidth: '800px', margin: '0 auto', position: 'relative' }}>
+            {/* Emoticon Picker Overlay */}
+            {showEmoticons && (
+                <div style={{
+                    position: 'absolute',
+                    bottom: '80px',
+                    left: '1rem',
+                    right: '1rem',
+                    backgroundColor: 'white',
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                    padding: '1rem',
+                    zIndex: 100,
+                    border: '1px solid #ddd'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <strong>이모티콘</strong>
+                        <button onClick={() => setShowEmoticons(false)} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>×</button>
+                    </div>
+
+                    {/* Basic Emojis */}
+                    <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                        {basicEmojis.map(emoji => (
+                            <button
+                                key={emoji}
+                                onClick={() => addEmoji(emoji)}
+                                style={{ fontSize: '1.5rem', border: 'none', background: 'none', cursor: 'pointer' }}
+                            >
+                                {emoji}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Stickers (Only V2) */}
+                    {isV2Unlocked && (
+                        <div>
+                            <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '0.5rem' }}>스티커 (Version 2)</div>
+                            <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto' }}>
+                                {stickers.map(sticker => (
+                                    <img
+                                        key={sticker.id}
+                                        src={sticker.url}
+                                        alt="sticker"
+                                        onClick={() => sendSticker(sticker.id)}
+                                        style={{ width: '60px', height: '60px', cursor: 'pointer', borderRadius: '8px', border: '1px solid #eee' }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <button onClick={onBack} style={{ background: '#F6F6F6', color: '#191919' }}>
                     ← 뒤로가기
@@ -265,7 +364,7 @@ const GroupChat = ({ group, onBack, isV2Unlocked }) => {
                                         {isSecretMsg && !revealedSecrets[index] ? (
                                             <span>🔒 비밀 메시지 (클릭)</span>
                                         ) : (
-                                            actualContent
+                                            renderContent(actualContent)
                                         )}
                                         {isSecretMsg && revealedSecrets[index] && (
                                             <span style={{ display: 'block', fontSize: '0.7rem', color: 'red', marginTop: '0.2rem' }}>
@@ -328,6 +427,21 @@ const GroupChat = ({ group, onBack, isV2Unlocked }) => {
                         🔒
                     </button>
                 )}
+
+                <button
+                    type="button"
+                    onClick={() => setShowEmoticons(!showEmoticons)}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '1.5rem',
+                        cursor: 'pointer',
+                        padding: '0 0.5rem'
+                    }}
+                >
+                    😀
+                </button>
+
 
                 <input
                     type="text"
