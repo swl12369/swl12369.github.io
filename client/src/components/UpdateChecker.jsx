@@ -1,22 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-const UpdateChecker = ({ onBack }) => {
-    const [currentVersion] = useState('Version 1');
-    const [latestVersion, setLatestVersion] = useState('Version 1');
-    const [hasUpdate, setHasUpdate] = useState(false);
-
-    useEffect(() => {
-        // Simulate checking for updates
-        setTimeout(() => {
-            setLatestVersion('Version 2');
-            setHasUpdate(true);
-        }, 1000);
-    }, []);
-
-    const handleUpdate = () => {
-        alert('업데이트 기능은 준비 중입니다!');
-        // In production, this would trigger an update process
-    };
+const UpdateChecker = ({ onBack, onUpdateV2, isV2Unlocked }) => {
+    const currentVersion = isV2Unlocked ? 'Version 2' : 'Version 1';
+    const latestVersion = 'Version 2';
 
     return (
         <div style={{
@@ -53,8 +39,7 @@ const UpdateChecker = ({ onBack }) => {
                     </div>
                 </div>
 
-                {/* Latest Version */}
-                {hasUpdate && (
+                {!isV2Unlocked ? (
                     <>
                         <div style={{
                             padding: '1.5rem',
@@ -71,7 +56,7 @@ const UpdateChecker = ({ onBack }) => {
                         </div>
 
                         <button
-                            onClick={handleUpdate}
+                            onClick={onUpdateV2}
                             style={{
                                 width: '100%',
                                 padding: '1.25rem',
@@ -80,22 +65,23 @@ const UpdateChecker = ({ onBack }) => {
                                 fontSize: '1.1rem',
                                 fontWeight: '700',
                                 borderRadius: '12px',
-                                boxShadow: '0 4px 12px rgba(0,199,60,0.3)'
+                                boxShadow: '0 4px 12px rgba(0,199,60,0.3)',
+                                border: 'none',
+                                cursor: 'pointer'
                             }}
                         >
-                            새로운 {latestVersion}로 업데이트 하기
+                            🚀 {latestVersion}로 업데이트 하기
                         </button>
                     </>
-                )}
-
-                {!hasUpdate && (
+                ) : (
                     <div style={{
                         padding: '2rem',
                         color: '#00C73C',
                         fontSize: '1.1rem',
                         fontWeight: '600'
                     }}>
-                        ✅ 최신 버전을 사용 중입니다!
+                        ✅ 최신 버전을 사용 중입니다!<br />
+                        <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: 'normal' }}>(포인트 시스템, 출석체크, 사다리타기 활성화됨)</span>
                     </div>
                 )}
             </div>

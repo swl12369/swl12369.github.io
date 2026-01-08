@@ -30,10 +30,17 @@ function App() {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const { isLoggedIn, user, logout, checkAttendance } = useAuth();
   const [attendanceChecked, setAttendanceChecked] = useState(false); // To prevent multiple alerts
+  const [isV2Unlocked, setIsV2Unlocked] = useState(localStorage.getItem('isV2Unlocked') === 'true');
 
-  // Auto Attendance Check
+  const enableV2 = () => {
+    setIsV2Unlocked(true);
+    localStorage.setItem('isV2Unlocked', 'true');
+    alert('🎉 Version 2 업데이트 완료!\n새로운 기능이 추가되었습니다:\n- 포인트 시스템 💰\n- 출석체크 📅\n- 사다리 타기 게임 🎢');
+  };
+
+  // Auto Attendance Check (Only if V2 is unlocked)
   useEffect(() => {
-    if (isLoggedIn && user && !attendanceChecked) {
+    if (isLoggedIn && user && !attendanceChecked && isV2Unlocked) {
       const doCheck = async () => {
         const result = await checkAttendance(user.username);
         if (result && result.success) {
@@ -43,7 +50,7 @@ function App() {
       };
       doCheck();
     }
-  }, [isLoggedIn, user, attendanceChecked, checkAttendance]);
+  }, [isLoggedIn, user, attendanceChecked, checkAttendance, isV2Unlocked]);
 
   // Check for unread messages every 5 seconds
   useEffect(() => {
@@ -223,11 +230,16 @@ function App() {
             onBack={() => setView('home')}
             onNavigate={setView}
             onShowAvatar={() => setShowAvatarSelector(true)}
+            isV2Unlocked={isV2Unlocked}
           />
         ) : view === 'ladder-game' ? (
           <LadderGame onBack={() => setView('profile')} />
         ) : view === 'update' ? (
-          <UpdateChecker onBack={() => setView('home')} />
+          <UpdateChecker
+            onBack={() => setView('home')}
+            onUpdateV2={enableV2}
+            isV2Unlocked={isV2Unlocked}
+          />
         ) : (
           <PostList onPostClick={handlePostClick} /> // Fallback
         )}

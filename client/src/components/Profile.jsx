@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/avatar';
 
-const Profile = ({ onBack, onNavigate, onShowAvatar }) => {
+const Profile = ({ onBack, onNavigate, onShowAvatar, isV2Unlocked }) => {
     const { user } = useAuth();
 
     return (
@@ -42,7 +42,11 @@ const Profile = ({ onBack, onNavigate, onShowAvatar }) => {
                         {user?.username}
                     </h2>
                     <p style={{ margin: '0.25rem 0 0 0', color: '#3C1E1E', opacity: 0.8, fontSize: '0.9rem' }}>
-                        포인트: <span style={{ fontWeight: 'bold', color: '#E03E3E' }}>{user?.points || 0} P</span>
+                        {isV2Unlocked ? (
+                            <>포인트: <span style={{ fontWeight: 'bold', color: '#E03E3E' }}>{user?.points || 0} P</span></>
+                        ) : (
+                            <>프로필 설정</>
+                        )}
                     </p>
                 </div>
             </div>
@@ -132,31 +136,33 @@ const Profile = ({ onBack, onNavigate, onShowAvatar }) => {
                 </div>
 
 
-                {/* Ladder Game */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '1.25rem',
-                    borderTop: '1px solid #E5E5EA'
-                }}>
-                    <div>
-                        <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>🎢 사다리 타기</div>
-                        <div style={{ fontSize: '0.85rem', color: '#7C7C7C' }}>
-                            미니게임 한 판!
+                {/* Ladder Game (Only show if V2 is unlocked) */}
+                {isV2Unlocked && (
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '1.25rem',
+                        borderTop: '1px solid #E5E5EA'
+                    }}>
+                        <div>
+                            <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>🎢 사다리 타기</div>
+                            <div style={{ fontSize: '0.85rem', color: '#7C7C7C' }}>
+                                미니게임 한 판!
+                            </div>
                         </div>
+                        <button
+                            onClick={() => onNavigate('ladder-game')}
+                            style={{
+                                backgroundColor: '#FEE500',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.9rem'
+                            }}
+                        >
+                            GO
+                        </button>
                     </div>
-                    <button
-                        onClick={() => onNavigate('ladder-game')}
-                        style={{
-                            backgroundColor: '#FEE500',
-                            padding: '0.5rem 1rem',
-                            fontSize: '0.9rem'
-                        }}
-                    >
-                        GO
-                    </button>
-                </div>
+                )}
             </div>
 
             {/* Logout */}
