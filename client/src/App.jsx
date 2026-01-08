@@ -94,17 +94,21 @@ function App() {
         setView('users');
         break;
       case 'createChat':
+        // Show user list to select members for new chat
+        setView('users');
+        break;
+      case 'chatList': // New: View Chat List
         setView('groupchatlist');
         break;
       case 'search':
         // TODO: Implement search
         alert('검색 기능 준비 중입니다!');
         break;
-      case 'createPost':
-        handleCreateClick();
+      case 'vote': // Changed from createPost
+        handleCreatePollClick();
         break;
-      case 'posts':
-        setView('home');
+      case 'posts': // Write Post (Text/Image/Video)
+        handleCreateClick();
         break;
       case 'autoUpdate':
         setView('update');

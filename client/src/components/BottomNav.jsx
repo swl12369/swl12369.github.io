@@ -8,14 +8,15 @@ const BottomNav = ({ currentView, onNavigate }) => {
     const navItems = [
         { id: 'users', icon: '👤', label: '회원보기' },
         { id: 'createChat', icon: '➕', label: '채팅방' },
+        { id: 'chatList', icon: '💬', label: '대화보기' },
         { id: 'search', icon: '🔍', label: '검색' },
-        { id: 'createPost', icon: '💾', label: '글만들기' },
+        { id: 'vote', icon: '🗳️', label: '투표하기' }, // Changed from createPost
         { id: 'posts', icon: '📄', label: '글쓰기' },
+        { id: 'autoUpdate', icon: '🔄', label: '업데이트' }, // Moved here
     ];
 
     if (isAdmin) {
         navItems.push(
-            { id: 'autoUpdate', icon: '🔄', label: '자동선택' },
             { id: 'admin', icon: '👑', label: '관리자' }
         );
     } else {
