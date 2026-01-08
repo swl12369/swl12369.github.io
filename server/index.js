@@ -185,6 +185,16 @@ console.log('Cloudinary Config:', {
     api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Missing'
 });
 
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME || '';
+const apiKey = process.env.CLOUDINARY_API_KEY || '';
+const apiSecret = process.env.CLOUDINARY_API_SECRET || '';
+
+console.log('--- Cloudinary Config Debug ---');
+console.log('Cloud Name:', cloudName ? `'${cloudName}' (Length: ${cloudName.length})` : 'Missing');
+console.log('API Key:', apiKey ? `'${apiKey.substring(0, 4)}...' (Length: ${apiKey.length})` : 'Missing');
+console.log('API Secret:', apiSecret ? `'${apiSecret.substring(0, 4)}...' (Length: ${apiSecret.length})` : 'Missing');
+console.log('-------------------------------');
+
 // Cloudinary Storage for Multer
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
