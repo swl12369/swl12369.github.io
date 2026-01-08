@@ -17,7 +17,8 @@ const BottomNav = ({ currentView, onNavigate }) => {
 
     if (isAdmin) {
         navItems.push(
-            { id: 'admin', icon: '👑', label: '관리자' }
+            { id: 'admin', icon: '👑', label: '관리자' },
+            { id: 'more', icon: '➕', label: '더보기' } // Add More menu for admin too
         );
     } else {
         navItems.push({ id: 'more', icon: '➕', label: '더보기' });
