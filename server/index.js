@@ -47,15 +47,20 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     securityQuestion: { type: String, required: true },
     securityAnswer: { type: String, required: true },
-    role: { type: String, default: 'user' },
-    avatarSeed: { type: String }, // For customizable avatars
-    avatarPath: { type: String }, // For uploaded avatar images
-    isApproved: { type: Boolean, default: false },
+    role: { type: String, default: 'user' }, // 'user' | 'admin'
+    avatarSeed: String, // For customizable avatars
+    avatarPath: String, // For uploaded images
+    approved: { type: Boolean, default: false }, // Approval status
     createdAt: { type: Date, default: Date.now },
     points: { type: Number, default: 0 },
     lastLogin: { type: Date },
     lastAttendance: { type: Date },
-    attendanceStreak: { type: Number, default: 0 }
+    attendanceStreak: { type: Number, default: 0 },
+    inventory: [{
+        itemId: String,
+        name: String,
+        date: { type: Date, default: Date.now }
+    }]
 });
 
 const postSchema = new mongoose.Schema({
@@ -159,9 +164,15 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // Configure Cloudinary
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'demo',
-    api_key: process.env.CLOUDINARY_API_KEY || 'demo',
-    api_secret: process.env.CLOUDINARY_API_SECRET || 'demo'
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+console.log('Cloudinary Config:', {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Missing',
+    api_key: process.env.CLOUDINARY_API_KEY ? 'Set' : 'Missing',
+    api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Missing'
 });
 
 // Cloudinary Storage for Multer
@@ -306,6 +317,8 @@ app.delete('/api/admin/users/:username', async (req, res) => {
 
 // Avatar Upload
 app.post('/api/users/:username/avatar', upload.single('avatar'), async (req, res) => {
+    console.log(`[POST /avatar] User: ${req.params.username}`);
+    console.log(`[POST /avatar] File:`, req.file);
     const { username } = req.params;
     try {
         const user = await User.findOne({ username });
@@ -323,6 +336,10 @@ app.post('/api/users/:username/avatar', upload.single('avatar'), async (req, res
         }
 
         // Save new avatar path
+        if (!req.file) {
+            console.error('[POST /avatar] No file uploaded');
+            return res.status(400).json({ error: '파일이 업로드되지 않았습니다.' });
+        }
         user.avatarPath = req.file.path; // Cloudinary URL
         user.avatarSeed = null; // Clear seed when using custom image
         await user.save();
@@ -493,6 +510,33 @@ app.post('/api/user/attendance', async (req, res) => {
 });
 
 
+// Shop Buy Endpoint
+app.post('/api/shop/buy', async (req, res) => {
+    console.log(`[POST /shop/buy] User: ${req.body?.username} Item: ${req.body?.itemId}`);
+    const { username, itemId, cost, itemName } = req.body;
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        if (user.points < cost) return res.status(400).json({ error: '포인트가 부족합니다.' });
+
+        // Check duplicate items
+        const hasItem = user.inventory && user.inventory.some(i => i.itemId === itemId);
+        if (hasItem) return res.status(400).json({ error: '이미 보유한 아이템입니다.' });
+
+        user.points -= cost;
+        if (!user.inventory) user.inventory = [];
+        user.inventory.push({ itemId, name: itemName });
+        await user.save();
+
+        res.json({ success: true, points: user.points, inventory: user.inventory });
+    } catch (err) {
+        console.error('[Shop Buy Error]', err);
+        res.status(500).json({ error: '구매 실패' });
+    }
+});
+
+
 // Post Routes
 app.get('/api/posts', async (req, res) => {
     try {
@@ -528,6 +572,8 @@ app.get('/api/posts', async (req, res) => {
 });
 
 app.post('/api/posts', upload.single('image'), async (req, res) => {
+    console.log('[POST /posts] Body:', req.body);
+    console.log('[POST /posts] File:', req.file);
     const { title, content, author, pollOption1, pollOption2 } = req.body;
     const imagePath = req.file ? req.file.path : null; // Cloudinary URL
 

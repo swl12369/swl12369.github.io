@@ -8,28 +8,42 @@ const items = [
     { id: 'emo4', name: '사랑 가득', price: 500, icon: '❤️' },
 ];
 
-const Shop = ({ onBack }) => {
-    const { user, updateUser } = useAuth(); // updateUser need to be implemented in AuthContext or handle locally
-    // Since updateUser might not persist to server without API, this is a demo
-    const [myItems, setMyItems] = useState([]); // This should come from user data
+import { API_URL } from '../config';
 
-    const handleBuy = (item) => {
+const Shop = ({ onBack }) => {
+    const { user, updateUser } = useAuth();
+
+    const handleBuy = async (item) => {
         if (user.points < item.price) {
             alert('포인트가 부족합니다!');
             return;
         }
 
         if (confirm(`${item.name}을(를) ${item.price}P에 구매하시겠습니까?`)) {
-            // Deduct points (Client-side simulation)
-            const updatedUser = { ...user, points: user.points - item.price };
+            try {
+                const res = await fetch(`${API_URL}/api/shop/buy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: user.username,
+                        itemId: item.id,
+                        cost: item.price,
+                        itemName: item.name
+                    })
+                });
+                const data = await res.json();
 
-            // In a real app, send API request here
-            // await api.buyItem(item.id);
-
-            // For now, update local state
-            updateUser(updatedUser);
-            setMyItems([...myItems, item.id]);
-            alert('구매 완료!');
+                if (data.success) {
+                    alert('구매 완료!');
+                    // Update global user state (AuthContext)
+                    updateUser({ ...user, points: data.points, inventory: data.inventory });
+                } else {
+                    alert(data.error || '구매 실패');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('서버 오류로 구매에 실패했습니다.');
+            }
         }
     };
 
@@ -45,30 +59,33 @@ const Shop = ({ onBack }) => {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
-                {items.map(item => (
-                    <div key={item.id} style={{
-                        background: 'white',
-                        padding: '1.5rem',
-                        borderRadius: '16px',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                        textAlign: 'center'
-                    }}>
-                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{item.icon}</div>
-                        <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{item.name}</div>
-                        <div style={{ color: '#E03E3E', fontWeight: 'bold', marginBottom: '1rem' }}>{item.price} P</div>
+                {items.map(item => {
+                    const hasItem = user.inventory && user.inventory.some(i => i.itemId === item.id);
+                    return (
+                        <div key={item.id} style={{
+                            background: 'white',
+                            padding: '1.5rem',
+                            borderRadius: '16px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            textAlign: 'center'
+                        }}>
+                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{item.icon}</div>
+                            <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{item.name}</div>
+                            <div style={{ color: '#E03E3E', fontWeight: 'bold', marginBottom: '1rem' }}>{item.price} P</div>
 
-                        {myItems.includes(item.id) ? (
-                            <button disabled style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: 'none', background: '#ddd' }}>보유중</button>
-                        ) : (
-                            <button
-                                onClick={() => handleBuy(item)}
-                                style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: 'none', background: '#FEE500', color: '#3C1E1E', cursor: 'pointer', fontWeight: 'bold' }}
-                            >
-                                구매하기
-                            </button>
-                        )}
-                    </div>
-                ))}
+                            {hasItem ? (
+                                <button disabled style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: 'none', background: '#ddd' }}>보유중</button>
+                            ) : (
+                                <button
+                                    onClick={() => handleBuy(item)}
+                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: 'none', background: '#FEE500', color: '#3C1E1E', cursor: 'pointer', fontWeight: 'bold' }}
+                                >
+                                    구매하기
+                                </button>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
