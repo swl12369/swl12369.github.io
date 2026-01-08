@@ -14,7 +14,8 @@ const Shop = ({ onBack }) => {
     const { user, updateUser } = useAuth();
 
     const handleBuy = async (item) => {
-        if (user.points < item.price) {
+        const currentPoints = user.points || 0;
+        if (currentPoints < item.price) {
             alert('포인트가 부족합니다!');
             return;
         }

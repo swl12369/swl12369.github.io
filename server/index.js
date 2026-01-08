@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema({
     role: { type: String, default: 'user' }, // 'user' | 'admin'
     avatarSeed: String, // For customizable avatars
     avatarPath: String, // For uploaded images
-    approved: { type: Boolean, default: false }, // Approval status
+    isApproved: { type: Boolean, default: false }, // Approval status
     createdAt: { type: Date, default: Date.now },
     points: { type: Number, default: 0 },
     lastLogin: { type: Date },
@@ -180,7 +180,6 @@ const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'family-board',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi'],
         resource_type: 'auto' // Automatically detect image or video
     }
 });
@@ -518,13 +517,14 @@ app.post('/api/shop/buy', async (req, res) => {
         const user = await User.findOne({ username });
         if (!user) return res.status(404).json({ error: 'User not found' });
 
-        if (user.points < cost) return res.status(400).json({ error: '포인트가 부족합니다.' });
+        const currentPoints = user.points || 0;
+        if (currentPoints < cost) return res.status(400).json({ error: '포인트가 부족합니다.' });
 
         // Check duplicate items
         const hasItem = user.inventory && user.inventory.some(i => i.itemId === itemId);
         if (hasItem) return res.status(400).json({ error: '이미 보유한 아이템입니다.' });
 
-        user.points -= cost;
+        user.points = currentPoints - cost;
         if (!user.inventory) user.inventory = [];
         user.inventory.push({ itemId, name: itemName });
         await user.save();
@@ -911,6 +911,15 @@ app.delete('/api/groupchats/:id', async (req, res) => {
     }
 });
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error('Unhandled Error:', err);
+    if (err instanceof multer.MulterError) {
+        return res.status(400).json({ error: `파일 업로드 오류: ${err.message}` });
+    }
+    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
+});
+
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
