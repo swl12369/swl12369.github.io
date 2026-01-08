@@ -443,19 +443,7 @@ const GroupChat = ({ group, onBack, isV2Unlocked }) => {
                     </button>
                 )}
 
-                <button
-                    type="button"
-                    onClick={() => setShowEmoticons(!showEmoticons)}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        fontSize: '1.5rem',
-                        cursor: 'pointer',
-                        padding: '0 0.5rem'
-                    }}
-                >
-                    😀
-                </button>
+
 
 
                 <input
@@ -472,6 +460,21 @@ const GroupChat = ({ group, onBack, isV2Unlocked }) => {
                         backgroundColor: isSecret ? '#f0f0f0' : '#FFFFFF'
                     }}
                 />
+
+                <button
+                    type="button"
+                    onClick={() => setShowEmoticons(!showEmoticons)}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '1.5rem',
+                        cursor: 'pointer',
+                        padding: '0 0.5rem'
+                    }}
+                    title="이모티콘"
+                >
+                    😀
+                </button>
                 <button
                     type="submit"
                     style={{
